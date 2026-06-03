@@ -144,58 +144,71 @@ curl -X POST http://notify-server:8080/api/ansible \
     "hosts":   ["192.168.1.10"]
   }'
 
-### Плейбук обновления ядра
-
-"""yaml
+### Плейбук обновления ядра (пример) хосты находятся в hosts
 ---
-- name: Отправить уведомление об обновлении
+- name: Обновление ядра с уведомлениями
   hosts: all
-  gather_facts: false
-  connection: local
+  become: yes
+  gather_facts: yes
+  serial: 10   # обновлять по 10 хостов за раз
+
+  vars:
+    notify_url:  "http://192.168.0.84:8080/api/ansible"
+    notify_key:  "ansible-secret-key"
 
   tasks:
-    - name: Отправить POST запрос с уведомлением
+
+    - name: Уведомить — начало обновления
       uri:
-        url: "http://192.168.0.84:8080/api/ansible"
-        method: POST
+        url:        "{{ notify_url }}"
+        method:     POST
         headers:
           Content-Type: "application/json"
-          X-API-Key: "ansible-secret-key"
+          X-API-Key:    "{{ notify_key }}"
         body_format: json
         body:
-          title: "⚠️ Обновление безопасности"
-          message: "## Не выключайте компьютер!\n\nИдёт установка обновлений.\n\n>\n\nОкно само закроется."
-          level: "critical"
-          type: "popup"
+          title:   "⚠️ Обновление безопасности"
+          message: "## Не выключайте компьютер!\n\nИдёт установка обновлений.\n\nОкно само закроется."
+          level:   "warning"
+          type:    "popup"
           timeout: 15
-          hosts: "{{ groups['all'] | map('extract', hostvars, 'inventory_hostname') | list }}"
+          hosts:
+            - "{{ ansible_host }}"
+        status_code: 200
+      delegate_to: localhost
+      # run_once убран — каждый хост получает своё уведомление
+
+    - name: Пауза — дать время прочитать
+      pause:
+        seconds: 10
       run_once: true
 
     - name: Обновить ядро
       command: update-kernel -y
+      register: kernel_result
 
     - name: Уведомить — готово
       uri:
-        url: "http://notify-server:8080/api/ansible"
-        method: POST
+        url:        "{{ notify_url }}"
+        method:     POST
         headers:
-          Content-Type: application/json
-          X-API-Key: "ansible-secret-key"
+          Content-Type: "application/json"
+          X-API-Key:    "{{ notify_key }}"
         body_format: json
         body:
-         title:   "✅ Обновление завершено"
+          title:   "✅ Обновление завершено"
           message: "## Готово!\n\nСистема перезагружается..."
           level:   "info"
           type:    "popup"
           timeout: 10
-          hosts: "{{ groups['all'] | map('extract', hostvars, 'inventory_hostname') | list }}"
-      run_once: true
+          hosts:
+            - "{{ ansible_host }}"
+        status_code: 200
+      delegate_to: localhost
 
     - name: Перезагрузка
       reboot:
         reboot_timeout: 300
-"""
-
 ---
 
 ## 📁 Структура проекта
