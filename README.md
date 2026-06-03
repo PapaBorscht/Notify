@@ -11,37 +11,31 @@
 **Версия:** 3.0
 
 ---
-<img src="https://allwebs.ru/images/2026/06/03/0bb6fa12e0f6c583d82ce6e5e326f860.png" alt="ansible 1" border="0">
-<img src="https://allwebs.ru/images/2026/06/03/00bcd76a2bf7b148b92116484231bbfe.png" alt="ansible 2" border="0">
-<img src="https://allwebs.ru/images/2026/06/03/c2d2704de9d223956c2f009bcf08240a.png" alt="full 1" border="0">
-<img src="https://allwebs.ru/images/2026/06/03/1077c529c53f96d3e568a735864e1e19.png" alt="Full 2" border="0">
-<img src="https://allwebs.ru/images/2026/06/03/9a3e31edd09be2bdc2cd4cb95e3dc494.png" alt="pop 1" border="0">
-<img src="https://allwebs.ru/images/2026/06/03/9797d6617328460af6bc47d1f3c1f012.png" alt="pop 2" border="0">
 
 ## 🖼 Скриншоты
 
 ### Полноэкранное уведомление — Информация
-https://allwebs.ru/image/full-1.YScdcQ
+<img src="https://allwebs.ru/images/2026/06/03/c2d2704de9d223956c2f009bcf08240a.png" alt="full 1" border="0">
 > Уровень `info` — тёмно-синий фон. Занимает весь экран, блокирует работу до подтверждения. Заголовок, Markdown-текст и кнопка «Принял к сведению».
 
 ### Полноэкранное уведомление — Тревога
-https://allwebs.ru/image/Full-2.YSch6J
+<img src="https://allwebs.ru/images/2026/06/03/1077c529c53f96d3e568a735864e1e19.png" alt="Full 2" border="0">
 > Уровень `critical` — тёмно-красный фон. Используется для экстренных событий: воздушная тревога, атаки на инфраструктуру, критические инциденты.
 
 ### Всплывающий попап — отправка из панели
-https://allwebs.ru/image/pop-2.YScumw
+<img src="https://allwebs.ru/images/2026/06/03/9797d6617328460af6bc47d1f3c1f012.png" alt="pop 2" border="0">
 > Уровень `info`, тип `popup` — маленькое окно в правом нижнем углу. Не мешает работе пользователя, закрывается автоматически по таймеру с прогресс-баром.
 
 ### Всплывающий попап — уровень Тревога
-https://allwebs.ru/image/pop-1.YScYpN
+<img src="https://allwebs.ru/images/2026/06/03/9a3e31edd09be2bdc2cd4cb95e3dc494.png" alt="pop 1" border="0">
 > Уровень `warning`, тип `popup`. Цветная полоска сверху и метка уровня меняются в зависимости от `level`.
 
 ### Ansible — отправка уведомления из плейбука
-https://allwebs.ru/image/ansible-1.YScpfM
+<img src="https://allwebs.ru/images/2026/06/03/0bb6fa12e0f6c583d82ce6e5e326f860.png" alt="ansible 1" border="0">
 > Ansible плейбук выполняет POST на `/api/ansible` с `X-API-Key`. Попап появляется на рабочем столе пользователя пока идёт установка обновлений.
 
 ### Ansible — уведомление об обновлении безопасности
-https://allwebs.ru/image/ansible-2.YSc0Zj
+<img src="https://allwebs.ru/images/2026/06/03/00bcd76a2bf7b148b92116484231bbfe.png" alt="ansible 2" border="0">
 > Уровень `warning` — красная полоска. Пользователь видит уведомление и знает что компьютер нельзя выключать.
 
 ---
