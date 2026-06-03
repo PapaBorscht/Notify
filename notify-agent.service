@@ -1,0 +1,15 @@
+[Unit]
+Description=Notify Agent — агент уведомлений
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/opt/notify-agent/agent-start.sh
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/tmp/notify-agent-%u.log
+StandardError=append:/tmp/notify-agent-%u.log
+
+[Install]
+WantedBy=graphical-session.target
