@@ -11,6 +11,15 @@
 **Версия:** 3.0
 
 ---
+# 💻 Кросс-платформенность
+
+<img src="https://allwebs.ru/images/2026/06/03/bdb81cef1c72ec37e3c9ff20eb3b3a45.png" alt="Кросс-платформенность" border="0">
+
+### Поддерживаемые дистрибутивы ОС
+
+| Alt Linux              | Astra Linux             | Red OS                 |
+|------------------------|-------------------------|------------------------|
+| ✅ **Поддерживается**   | ✅ **Поддерживается**    | ✅ **Поддерживается**   |
 
 ## 🚀 Быстрый старт 
 <img src="notify_agent_quickstart_guide.svg" alt="Notify Agent Quickstart Guide" width="800">
