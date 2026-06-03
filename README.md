@@ -12,6 +12,8 @@
 
 ---
 
+## 🚀 Быстрый старт 
+<img src="notify_agent_quickstart_guide.svg" alt="Notify Agent Quickstart Guide" width="800">
 ## 🖼 Скриншоты
 
 ### Полноэкранное уведомление — Информация
