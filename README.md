@@ -11,6 +11,12 @@
 **Версия:** 3.0
 
 ---
+<img src="https://allwebs.ru/images/2026/06/03/0bb6fa12e0f6c583d82ce6e5e326f860.png" alt="ansible 1" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/00bcd76a2bf7b148b92116484231bbfe.png" alt="ansible 2" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/c2d2704de9d223956c2f009bcf08240a.png" alt="full 1" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/1077c529c53f96d3e568a735864e1e19.png" alt="Full 2" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/9a3e31edd09be2bdc2cd4cb95e3dc494.png" alt="pop 1" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/9797d6617328460af6bc47d1f3c1f012.png" alt="pop 2" border="0">
 
 ## 🖼 Скриншоты
 
