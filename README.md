@@ -25,19 +25,19 @@
 > Уровень "critical" — тёмно-красный фон. Используется для экстренных событий: воздушная тревога, атаки на инфраструктуру, критические инциденты.
 
 ### Всплывающий попап — отправка из панели
-<img src="https://allwebs.ru/images/2026/06/03/9797d6617328460af6bc47d1f3c1f012.png" alt="pop 2" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/7fa3d083a13ea2250406f572d04bc3c1.png" alt="pop 2" border="0">
 > Уровень "info", тип "popup" — маленькое окно по центру. Не мешает работе пользователя, закрывается автоматически по таймеру с прогресс-баром.
 
 ### Всплывающий попап — уровень Тревога
-<img src="https://allwebs.ru/images/2026/06/03/9a3e31edd09be2bdc2cd4cb95e3dc494.png" alt="pop 1" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/768471f503d8101babb8c1c97811dc72.png" alt="pop 1" border="0">
 > Уровень "warning", тип "popup". Цветная полоска сверху и метка уровня меняются в зависимости от "level".
 
 ### Ansible — отправка уведомления из плейбука
-<img src="https://allwebs.ru/images/2026/06/03/0bb6fa12e0f6c583d82ce6e5e326f860.png" alt="ansible 1" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/1519c50b2015e02ffa61f3aae58b979e.png" alt="ansible 1" border="0">
 > Ansible плейбук выполняет POST на "/api/ansible" с "X-API-Key". Попап появляется на рабочем столе пользователя пока идёт установка обновлений.
 
 ### Ansible — уведомление об обновлении безопасности
-<img src="https://allwebs.ru/images/2026/06/03/00bcd76a2bf7b148b92116484231bbfe.png" alt="ansible 2" border="0">
+<img src="https://allwebs.ru/images/2026/06/03/f15fd414909831f500f2e9bbac6470aa.png" alt="ansible 2" border="0">
 > Уровень "warning" — красная полоска. Пользователь видит уведомление и знает что компьютер нельзя выключать.
 
 ---
