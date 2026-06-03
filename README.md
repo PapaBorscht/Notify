@@ -148,31 +148,28 @@ curl -X POST http://notify-server:8080/api/ansible \
 
 """yaml
 ---
-- name: Обновление ядра с уведомлениями
-  hosts: workstations
-  become: yes
-  serial: 1
+- name: Отправить уведомление об обновлении
+  hosts: all
+  gather_facts: false
+  connection: local
 
   tasks:
-
-    - name: Уведомить — начало обновления
+    - name: Отправить POST запрос с уведомлением
       uri:
-        url: "http://notify-server:8080/api/ansible"
+        url: "http://192.168.0.84:8080/api/ansible"
         method: POST
         headers:
-          Content-Type: application/json
+          Content-Type: "application/json"
           X-API-Key: "ansible-secret-key"
         body_format: json
         body:
-          title:   "⚠️ Обновление ядра"
-          message: "## Не выключайте компьютер!\n\nНачинается обновление."
-          level:   "warning"
-          type:    "popup"
+          title: "⚠️ Обновление безопасности"
+          message: "## Не выключайте компьютер!\n\nИдёт установка обновлений.\n\n>\n\nОкно само закроется."
+          level: "critical"
+          type: "popup"
           timeout: 15
-          hosts:
-            - "{{ ansible_host }}"
-        status_code: 200
-      delegate_to: localhost
+          hosts: "{{ groups['all'] | map('extract', hostvars, 'inventory_hostname') | list }}"
+      run_once: true
 
     - name: Обновить ядро
       command: update-kernel -y
@@ -186,15 +183,13 @@ curl -X POST http://notify-server:8080/api/ansible \
           X-API-Key: "ansible-secret-key"
         body_format: json
         body:
-          title:   "✅ Обновление завершено"
+         title:   "✅ Обновление завершено"
           message: "## Готово!\n\nСистема перезагружается..."
           level:   "info"
           type:    "popup"
           timeout: 10
-          hosts:
-            - "{{ ansible_host }}"
-        status_code: 200
-      delegate_to: localhost
+          hosts: "{{ groups['all'] | map('extract', hostvars, 'inventory_hostname') | list }}"
+      run_once: true
 
     - name: Перезагрузка
       reboot:
