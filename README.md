@@ -146,70 +146,115 @@ curl -X POST http://notify-server:8080/api/ansible \
 
 ### Плейбук обновления ядра (пример) хосты находятся в hosts
 ---
-- name: Обновление ядра с уведомлениями
-  hosts: all
+- name: Обновление ядра
+  hosts: workstations
+  gather_facts: false
   become: yes
-  gather_facts: yes
-  serial: 10   # обновлять по 10 хостов за раз
-
-  vars:
-    notify_url:  "http://192.168.0.84:8080/api/ansible"
-    notify_key:  "ansible-secret-key"
 
   tasks:
 
-    - name: Уведомить — начало обновления
+    - name: Уведомить — начало
       uri:
-        url:        "{{ notify_url }}"
-        method:     POST
+        url: "http://192.168.0.84:8080/api/ansible"
+        method: POST
         headers:
           Content-Type: "application/json"
-          X-API-Key:    "{{ notify_key }}"
+          X-API-Key: "ansible-secret-key"
         body_format: json
         body:
-          title:   "⚠️ Обновление безопасности"
-          message: "## Не выключайте компьютер!\n\nИдёт установка обновлений.\n\nОкно само закроется."
-          level:   "warning"
-          type:    "popup"
+          title: "⚠️ Обновление ядра"
+          message: "## Не выключайте компьютер!\n\nНачинается обновление."
+          level: "warning"
+          type: "popup"
           timeout: 15
           hosts:
-            - "{{ ansible_host }}"
-        status_code: 200
-      delegate_to: localhost
-      # run_once убран — каждый хост получает своё уведомление
+            - "{{ inventory_hostname }}"
+      become: false
 
-    - name: Пауза — дать время прочитать
-      pause:
-        seconds: 10
-      run_once: true
+    - name: apt-get update
+      command: apt-get update
 
-    - name: Обновить ядро
+    - name: update-kernel
       command: update-kernel -y
-      register: kernel_result
 
     - name: Уведомить — готово
       uri:
-        url:        "{{ notify_url }}"
-        method:     POST
+        url: "http://192.168.0.84:8080/api/ansible"
+        method: POST
         headers:
           Content-Type: "application/json"
-          X-API-Key:    "{{ notify_key }}"
+          X-API-Key: "ansible-secret-key"
         body_format: json
         body:
-          title:   "✅ Обновление завершено"
-          message: "## Готово!\n\nСистема перезагружается..."
-          level:   "info"
-          type:    "popup"
+          title: "✅ Готово"
+          message: "## Обновление завершено!\n\nПерезагрузка..."
+          level: "info"
+          type: "popup"
           timeout: 10
           hosts:
-            - "{{ ansible_host }}"
-        status_code: 200
-      delegate_to: localhost
+            - "{{ inventory_hostname }}"
+      become: false
 
     - name: Перезагрузка
       reboot:
-        reboot_timeout: 300
+        reboot_timeout: 3000
+
+### Плейбук обновление дистрибутивов (пример) хосты находятся в hosts
+
 ---
+- name: Обновление дистрибутивов
+  hosts: workstations
+  gather_facts: false
+  become: yes
+
+  tasks:
+
+    - name: Уведомить — начало
+      uri:
+        url: "http://192.168.0.84:8080/api/ansible"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+          X-API-Key: "ansible-secret-key"
+        body_format: json
+        body:
+          title: "⚠️ Обновление пакетов"
+          message: "## Не выключайте компьютер!\n\nНачинается обновление."
+          level: "warning"
+          type: "popup"
+          timeout: 15
+          hosts:
+            - "{{ inventory_hostname }}"
+      become: false
+
+    - name: apt-get update
+      command: apt-get update
+
+    - name: dist upgrade
+      command: apt-get dist-upgrade -y
+
+    - name: Уведомить — готово
+      uri:
+        url: "http://192.168.0.84:8080/api/ansible"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+          X-API-Key: "ansible-secret-key"
+        body_format: json
+        body:
+          title: "✅ Готово"
+          message: "## Обновление завершено!\n\nПакеты успешно обновлены..."
+          level: "info"
+          type: "popup"
+          timeout: 10
+          hosts:
+            - "{{ inventory_hostname }}"
+      become: false
+
+#    - name: Перезагрузка
+#      reboot:
+#        reboot_timeout: 30000
+
 
 ## 📁 Структура проекта
 
