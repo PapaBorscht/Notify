@@ -49,6 +49,12 @@ sudo bash install-agent.sh
 
 ## 📸 Скриншоты
 
+### Панель управления
+<img src="https://allwebs.ru/images/2026/06/04/9d65191d9a3ad3b07cb1d3066fedc992.png" alt="send" border="0">
+
+### Добавляем хосты
+<img src="https://allwebs.ru/images/2026/06/04/ab2d4b76b958711f38a549fe8a4984f2.png" alt="Hosts" border="0">
+
 ### Полноэкранное уведомление — Информация
 <img src="https://allwebs.ru/images/2026/06/03/c2d2704de9d223956c2f009bcf08240a.png" alt="full 1" border="0">
 > Уровень "info" — тёмно-синий фон. Занимает весь экран, блокирует работу до подтверждения. Заголовок, Markdown-текст и кнопка «Принял к сведению».
