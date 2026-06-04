@@ -90,9 +90,7 @@ sudo bash install-agent.sh
 ---
 
 ## 🏗 Архитектура
-"""
 ![Notify Agent Architecture](notify_agent_architecture.svg)
-"""
 
 ### Логика выбора типа окна
 
