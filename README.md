@@ -22,7 +22,20 @@
 | ✅ **Поддерживается**  | ✅ **Поддерживается**   | ✅ **Поддерживается**  |
 
 ## 🚀 Быстрый старт 
-<img src="notify_agent_quickstart_guide.svg" alt="Notify Agent Quickstart Guide" width="800">
+Установка панели управления:
+cd /tmp
+wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
+unzip main.zip
+cd /tmp/Notify-main/
+bash install-panel.sh
+
+Установка клиента на хосте:
+cd /tmp
+wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
+unzip main.zip
+cd /tmp/Notify-main/
+bash install-agent.sh
+
 ## 📸 Скриншоты
 
 ### Полноэкранное уведомление — Информация
@@ -66,6 +79,7 @@
 ---
 
 ## 🏗 Архитектура
+<img src="notify_agent_quickstart_guide.svg" alt="Notify Agent Quickstart Guide" width="800">
 
 """
 Браузер / Ansible
