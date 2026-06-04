@@ -71,11 +71,11 @@ sudo bash install-agent.sh
 <img src="https://allwebs.ru/images/2026/06/03/768471f503d8101babb8c1c97811dc72.png" alt="pop 1" border="0">
 > Уровень "warning", тип "popup". Цветная полоска сверху и метка уровня меняются в зависимости от "level".
 
-### Ansible — отправка уведомления из плейбука
+### Ansible — отправка уведомления из плейбука при установке ПО
 <img src="https://allwebs.ru/images/2026/06/03/1519c50b2015e02ffa61f3aae58b979e.png" alt="ansible 1" border="0">
 > Ansible плейбук выполняет POST на "/api/ansible" с "X-API-Key". Попап появляется на рабочем столе пользователя пока идёт установка обновлений.
 
-### Ansible — уведомление об обновлении безопасности
+### Ansible — уведомление об обновлении безопасности (например)
 <img src="https://allwebs.ru/images/2026/06/03/f15fd414909831f500f2e9bbac6470aa.png" alt="ansible 2" border="0">
 > Уровень "warning" — красная полоска. Пользователь видит уведомление и знает что компьютер нельзя выключать.
 
