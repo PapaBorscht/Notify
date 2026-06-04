@@ -37,7 +37,7 @@ wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
 unzip main.zip
 cd /tmp/Notify-main/
 sudo bash install-agent.sh
-
+```
 ## 📸 Скриншоты
 
 ### Полноэкранное уведомление — Информация
