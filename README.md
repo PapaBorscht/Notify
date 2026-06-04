@@ -24,6 +24,7 @@
 ## 🚀 Быстрый старт 
 
 **Установка панели управления (Control Panel):**
+
 ```bash
 cd /tmp
 wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
@@ -31,13 +32,21 @@ unzip main.zip
 cd /tmp/Notify-main/
 sudo bash install-panel.sh
 
-Установка клиента на хосте:
+**Установка клиента на хосте:**
+
+```bash
 cd /tmp
 wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
 unzip main.zip
 cd /tmp/Notify-main/
 sudo bash install-agent.sh
 ```
+**Доступ к панели управления:**
+
+- **Адрес:** `localhost:8080`
+- **Логин:** `admin`
+- **Пароль:** `admin123`
+
 ## 📸 Скриншоты
 
 ### Полноэкранное уведомление — Информация
