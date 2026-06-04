@@ -30,7 +30,7 @@ cd /tmp
 wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
 unzip main.zip
 cd /tmp/Notify-main/
-sudo bash install-panel.sh
+bash install-panel.sh
 ```
 
 **Установка клиента на хосте:**
@@ -39,7 +39,7 @@ cd /tmp
 wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
 unzip main.zip
 cd /tmp/Notify-main/
-sudo bash install-agent.sh
+bash install-agent.sh
 ```
 **Доступ к панели управления:**
 
@@ -114,7 +114,7 @@ sudo bash install-agent.sh
 ### Установка агента на рабочие станции
 
 ```bash
-sudo bash install-agent.sh
+bash install-agent.sh
 
 Скрипт автоматически:
 - Устанавливает PyQt5 если нет
@@ -125,7 +125,7 @@ sudo bash install-agent.sh
 ### Установка панели администратора
 
 ```bash
-sudo bash install-panel.sh
+bash install-panel.sh
 
 
 Открыть в браузере: "http://localhost:8080"  
