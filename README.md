@@ -23,7 +23,8 @@
 
 ## 🚀 Быстрый старт 
 
-Установка панели управления (Control Panel):
+**Установка панели управления (Control Panel):**
+```bash
 cd /tmp
 wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
 unzip main.zip
