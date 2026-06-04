@@ -31,9 +31,9 @@ wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
 unzip main.zip
 cd /tmp/Notify-main/
 sudo bash install-panel.sh
+```
 
 **Установка клиента на хосте:**
-
 ```bash
 cd /tmp
 wget https://github.com/PapaBorscht/Notify/archive/refs/heads/main.zip
