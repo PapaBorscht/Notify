@@ -90,18 +90,8 @@ sudo bash install-agent.sh
 ---
 
 ## 🏗 Архитектура
-<img src="notify_agent_quickstart_guide.svg" alt="Notify Agent Quickstart Guide" width="800">
-
 """
-Браузер / Ansible
-      │
-      ▼
-server.py :8080          ← Веб-панель администратора
-      │
-      │  HTTP POST :9988
-      ├──────────────────► PC01 agent.py  →  [Fullscreen]
-      ├──────────────────► PC02 agent.py  →  [Popup]
-      └──────────────────► PC03 agent.py  →  [Fullscreen]
+![Notify Agent Architecture](notify_agent_architecture.svg)
 """
 
 ### Логика выбора типа окна
