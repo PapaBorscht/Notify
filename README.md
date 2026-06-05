@@ -2,6 +2,8 @@
 
 > При воздушной тревоге, атаке на инфраструктуру или любом критическом событии — полноэкранное окно с захватом клавиатуры мгновенно появляется на всех экранах и не даёт его закрыть пока пользователь не подтвердит прочтение. Помимо тревог, отлично встраивается в Ansible-плейбуки: при установке ПО или обновлении ядра агент показывает попап снизу-справа с таймером.
 
+<img src="https://allwebs.ru/images/2026/06/05/c8aa7f6de20390f996e8832a536fdfdc.png" alt="Notify cross-platform" border="0">
+
 **Автор:** [@PapaBorscht](https://t.me/PapaBorscht)  
 **Почта:** [me@ntfypush.ru](mailto:me@ntfypush.ru)  
 **Платформа:** GNU/Linux · Python 3.8+  
@@ -366,11 +368,27 @@ OK
 
 ---
 
+## 🖥 Кроссплатформенность
+
+Протестировано на следующих дистрибутивах и окружениях рабочего стола:
+
+| Дистрибутив | DE | X11 | Wayland |
+|---|---|---|---|
+| ALT Linux p10 / p11 / Сизиф | MATE | ✅ | ✅ XWayland |
+| RedOS 8.0.2 | MATE | ✅ | ✅ XWayland |
+| AstraLinux 1.8 | Fly | ✅ | — |
+| Ubuntu 22.04 / 24.04 | GNOME | ✅ | ✅ XWayland |
+| Debian 12 | XFCE / GNOME | ✅ | ✅ XWayland |
+
+> Wayland поддерживается через XWayland. Нативный Wayland (Layer Shell) в планах.
+
+---
+
 ## 📋 Требования
 
 | Компонент | Требование |
 |---|---|
-| ОС | ALT Linux (Сизиф, p10, p11), RedOS 8.0.2, AstraLinux 1.8, Ubuntu |
+| ОС | ALT Linux (Сизиф, p10, p11), RedOS 8.0.2, AstraLinux 1.8, |
 | Python | 3.8+ |
 | PyQt5 | `apt-get install python3-module-pyqt5` |
 | DE | MATE, KDE, XFCE, GNOME (X11 / XWayland) |
