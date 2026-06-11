@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Notify — Demo Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#03050d;--s1:#06090f;--s2:#0a1020;--b:#111d35;--b2:#1a2d50;
+  --blue:#3b7fff;--blue2:#5b9bff;--red:#ff3355;--amber:#ffaa00;--green:#00e5a0;--cyan:#06d6f0;
+  --t1:#eef2ff;--t2:#5d6f9a;--t3:#1a2a50;
+  --f:'Inter',sans-serif;--m:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--t1);font-family:var(--f);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{
+  height:52px;background:var(--s1);border-bottom:1px solid var(--b);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;
+}
+.topbar-logo{display:flex;align-items:center;gap:9px}
+.tl-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#1a4ecc,#3b7fff);display:flex;align-items:center;justify-content:center;font-size:15px;position:relative;box-shadow:0 0 16px rgba(59,127,255,.4)}
+.tl-icon::after{content:'';position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--s1);box-shadow:0 0 6px var(--red);animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.tl-name{font-weight:800;font-size:15px}
+.tl-demo{font-family:var(--m);font-size:10px;background:rgba(255,170,0,.12);color:var(--amber);border:1px solid rgba(255,170,0,.25);padding:2px 8px;border-radius:20px;letter-spacing:1px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.tb-stat{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)}
+.tb-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.tb-exit{font-size:12px;color:var(--t2);text-decoration:none;padding:5px 12px;border:1px solid var(--b2);border-radius:6px;transition:.2s}
+.tb-exit:hover{color:var(--t1);border-color:var(--blue)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:200px;background:var(--s1);border-right:1px solid var(--b);padding:12px 8px;flex-shrink:0;display:flex;flex-direction:column;gap:2px}
+.sid-label{font-family:var(--m);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;padding:8px 10px 4px}
+.sid-item{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;
+  cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:.15s;user-select:none;
+}
+.sid-item:hover{color:var(--t1);background:rgba(255,255,255,.04)}
+.sid-item.active{color:var(--blue2);background:rgba(59,127,255,.1)}
+.sid-item .ico{font-size:15px;width:18px;text-align:center}
+.sid-item .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:24px}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:18px;font-weight:800;margin-bottom:3px;letter-spacing:-.5px}
+.page-sub{color:var(--t2);font-size:12px;margin-bottom:20px}
+
+/* ── CARDS ── */
+.card{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:16px;margin-bottom:14px}
+.card-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;font-family:var(--m)}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── FORM ELEMENTS ── */
+.lbl{font-size:11px;font-weight:600;color:var(--t2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.inp{
+  width:100%;background:var(--bg);border:1px solid var(--b2);border-radius:8px;
+  color:var(--t1);font-family:var(--f);font-size:13px;padding:9px 12px;
+  transition:.2s;outline:none;
+}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,127,255,.1)}
+textarea.inp{resize:vertical;min-height:80px;line-height:1.6}
+
+/* ── LEVEL BUTTONS ── */
+.level-btns{display:flex;gap:8px}
+.lvl-btn{
+  flex:1;padding:8px;border-radius:8px;border:1px solid var(--b2);
+  background:transparent;color:var(--t2);font-size:12px;font-weight:600;
+  cursor:pointer;transition:.2s;font-family:var(--f);
+}
+.lvl-btn:hover{border-color:var(--b2);color:var(--t1)}
+.lvl-btn.sel-info{background:rgba(59,127,255,.15);border-color:var(--blue);color:var(--blue2)}
+.lvl-btn.sel-warning{background:rgba(255,170,0,.12);border-color:var(--amber);color:var(--amber)}
+.lvl-btn.sel-critical{background:rgba(255,51,85,.12);border-color:var(--red);color:var(--red)}
+
+/* ── TYPE BUTTONS ── */
+.type-btns{display:flex;gap:8px}
+.type-btn{
+  flex:1;padding:8px;border-radius:8px;border:1px solid var(--b2);
+  background:transparent;color:var(--t2);font-size:12px;font-weight:600;
+  cursor:pointer;transition:.2s;font-family:var(--f);
+}
+.type-btn.sel{background:rgba(59,127,255,.15);border-color:var(--blue);color:var(--blue2)}
+
+/* ── HOST LIST ── */
+.host-item{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:var(--bg);border:1px solid var(--b);border-radius:8px;margin-bottom:6px;
+  cursor:pointer;transition:.15s;
+}
+.host-item:hover{border-color:var(--b2)}
+.host-item.selected{border-color:var(--blue);background:rgba(59,127,255,.05)}
+.host-cb{width:16px;height:16px;border-radius:4px;border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+.host-item.selected .host-cb{background:var(--blue);border-color:var(--blue)}
+.host-online{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);flex-shrink:0}
+.host-offline{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0}
+.host-name{font-size:13px;font-weight:600}
+.host-ip{font-family:var(--m);font-size:11px;color:var(--t2)}
+.host-sel-info{font-size:11px;color:var(--t2);margin-top:4px}
+
+/* ── SEND BUTTON ── */
+.send-btn{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,#1a4ecc,#3b7fff);
+  color:#fff;font-size:14px;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 24px rgba(59,127,255,.4);transition:.2s;font-family:var(--f);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.send-btn:hover{box-shadow:0 4px 40px rgba(59,127,255,.6);transform:translateY(-1px)}
+.send-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── RESULT LIST ── */
+.result-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:12px;margin-top:4px}
+.res-ok{background:rgba(0,229,160,.08);color:var(--green)}
+.res-err{background:rgba(255,51,85,.08);color:var(--red)}
+
+/* ── PREVIEW ── */
+.preview-box{
+  background:var(--bg);border:1px solid var(--b);border-radius:8px;
+  padding:12px;min-height:60px;font-size:13px;color:var(--t2);line-height:1.7;
+}
+.preview-box h2{font-size:14px;font-weight:700;color:var(--blue2);margin-bottom:4px}
+.preview-box h3{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px}
+.preview-box strong{font-weight:700;color:var(--t1)}
+.preview-box blockquote{border-left:2px solid var(--blue);padding-left:8px;color:var(--t3);margin:4px 0}
+.preview-box code{font-family:var(--m);font-size:11px;background:rgba(59,127,255,.1);color:var(--blue2);padding:1px 5px;border-radius:3px}
+
+/* ── HISTORY ── */
+.hist-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border:1px solid var(--b);border-radius:8px;margin-bottom:8px}
+.hist-badge{font-family:var(--m);font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px}
+.hb-info{background:rgba(59,127,255,.1);color:var(--blue2)}
+.hb-warning{background:rgba(255,170,0,.1);color:var(--amber)}
+.hb-critical{background:rgba(255,51,85,.1);color:var(--red)}
+.hist-title{font-size:13px;font-weight:600}
+.hist-meta{font-size:11px;color:var(--t2)}
+.hist-ok{margin-left:auto;font-size:11px;color:var(--green);font-family:var(--m)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:var(--s2);border:1px solid var(--b2);border-radius:12px;
+  padding:14px 18px;min-width:280px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 40px rgba(0,0,0,.7);
+  transform:translateY(80px);opacity:0;
+  transition:all .35s cubic-bezier(.34,1.56,.64,1);
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-icon{font-size:18px;flex-shrink:0}
+.toast-text{font-size:13px;font-weight:600}
+.toast-sub{font-size:11px;color:var(--t2)}
+
+/* ── PROGRESS ── */
+.send-progress{height:3px;border-radius:2px;background:var(--b2);margin-top:10px;overflow:hidden;display:none}
+.send-progress-i{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:2px;transition:width .1s}
+
+/* ── HOSTS PAGE ── */
+.host-add-row{display:flex;gap:8px;margin-bottom:12px}
+.host-add-row .inp{flex:1}
+.add-btn{padding:9px 16px;background:rgba(59,127,255,.15);border:1px solid rgba(59,127,255,.3);color:var(--blue2);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;font-family:var(--f);transition:.2s}
+.add-btn:hover{background:rgba(59,127,255,.25)}
+
+/* ── DEMO OVERLAY ── */
+.demo-overlay{
+  position:fixed;top:0;left:0;right:0;
+  background:linear-gradient(90deg,rgba(59,127,255,.12),rgba(160,96,255,.08),rgba(59,127,255,.12));
+  text-align:center;padding:8px;font-size:12px;color:var(--blue2);
+  border-bottom:1px solid rgba(59,127,255,.15);z-index:50;
+  font-family:var(--m);letter-spacing:.5px;
+}
+
+/* ── FULLSCREEN DEMO ── */
+.fs-demo{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px;display:none;
+}
+.fs-demo.show{display:flex}
+.fs-demo-info{background:linear-gradient(155deg,#0a0203,#200a0a)}
+.fs-demo-warning{background:linear-gradient(155deg,#0a0600,#1e1200)}
+.fs-demo-critical{background:linear-gradient(155deg,#0a0203,#250404)}
+.fs-badge{display:inline-block;font-family:var(--m);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 16px;border-radius:20px;margin-bottom:20px}
+.fsd-info .fs-badge{background:rgba(59,127,255,.2);color:var(--blue2);border:1px solid rgba(59,127,255,.3)}
+.fsd-warning .fs-badge{background:rgba(255,170,0,.2);color:var(--amber);border:1px solid rgba(255,170,0,.3)}
+.fsd-critical .fs-badge{background:rgba(255,51,85,.2);color:var(--red);border:1px solid rgba(255,51,85,.3)}
+.fs-title{font-size:clamp(28px,4vw,48px);font-weight:900;text-align:center;letter-spacing:-1px;margin-bottom:16px}
+.fs-divider{width:100%;max-width:700px;height:1px;margin-bottom:24px}
+.fsd-info .fs-divider{background:var(--blue)}
+.fsd-warning .fs-divider{background:var(--amber)}
+.fsd-critical .fs-divider{background:var(--red)}
+.fs-text{max-width:680px;text-align:left;font-size:15px;line-height:1.8;color:#ccd0e0;margin-bottom:36px;width:100%}
+.fs-close-btn{padding:14px 60px;border-radius:12px;border:none;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--f);transition:.2s}
+.fsd-info .fs-close-btn{background:var(--blue);color:#fff;box-shadow:0 4px 24px rgba(59,127,255,.4)}
+.fsd-warning .fs-close-btn{background:var(--amber);color:#000;box-shadow:0 4px 24px rgba(255,170,0,.35)}
+.fsd-critical .fs-close-btn{background:var(--red);color:#fff;box-shadow:0 4px 24px rgba(255,51,85,.4)}
+.fs-close-btn:hover{transform:translateY(-2px)}
+.fs-esc{position:absolute;bottom:24px;font-family:var(--m);font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1px}
+
+/* ── POPUP DEMO ── */
+.popup-demo{
+  position:fixed;bottom:24px;right:24px;z-index:200;
+  width:360px;border-radius:16px;overflow:hidden;border:1px solid;
+  display:none;box-shadow:0 20px 60px rgba(0,0,0,.8);
+}
+.popup-demo.show{display:block}
+.pd-info{background:#0e1626;border-color:rgba(59,127,255,.3)}
+.pd-warning{background:#1a1006;border-color:rgba(255,170,0,.3)}
+.pd-critical{background:#1a0608;border-color:rgba(255,51,85,.3)}
+.pd-strip{height:3px}
+.pd-info .pd-strip{background:var(--blue)}
+.pd-warning .pd-strip{background:var(--amber)}
+.pd-critical .pd-strip{background:var(--red)}
+.pd-body{padding:16px}
+.pd-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pd-level{font-family:var(--m);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.pd-info .pd-level{color:var(--blue2)}
+.pd-warning .pd-level{color:var(--amber)}
+.pd-critical .pd-level{color:var(--red)}
+.pd-x{background:none;border:none;color:var(--t2);cursor:pointer;font-size:16px;transition:.2s}
+.pd-x:hover{color:var(--t1)}
+.pd-title{font-size:15px;font-weight:700;margin-bottom:6px}
+.pd-text{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:12px}
+.pd-bar-wrap{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.pd-bar{height:100%;border-radius:2px;animation:drain 8s linear forwards}
+.pd-info .pd-bar{background:var(--blue)}
+.pd-warning .pd-bar{background:var(--amber)}
+.pd-critical .pd-bar{background:var(--red)}
+@keyframes drain{from{width:100%}to{width:0%}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="demo-overlay">🎮 DEMO — Интерактивная демонстрация · Уведомления симулируются · Настоящая панель разворачивается через install-panel.sh</div>
+
+<!-- TOPBAR -->
+<div class="topbar" style="margin-top:33px">
+  <div class="topbar-logo">
+    <div class="tl-icon">📢</div>
+    <span class="tl-name">Notify Admin</span>
+    <span class="tl-demo">DEMO</span>
+  </div>
+  <div class="topbar-right">
+    <div class="tb-stat"><span class="tb-dot"></span>3 из 5 онлайн</div>
+    <a href="https://github.com/PapaBorscht/Notify" class="tb-exit" target="_blank">GitHub →</a>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sid-label">Панель</div>
+    <div class="sid-item active" onclick="showPage('send')"><span class="ico">📨</span>Отправить</div>
+    <div class="sid-item" onclick="showPage('hosts')"><span class="ico">🖥</span>Хосты<span class="badge">5</span></div>
+    <div class="sid-item" onclick="showPage('templates')"><span class="ico">📋</span>Шаблоны</div>
+    <div class="sid-item" onclick="showPage('history')"><span class="ico">🕓</span>История</div>
+    <div class="sid-item" onclick="showPage('ansible')"><span class="ico">🤖</span>Ansible</div>
+    <div class="sid-item" onclick="showPage('settings')"><span class="ico">⚙️</span>Настройки</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main">
+
+    <!-- ОТПРАВИТЬ -->
+    <div class="page active" id="page-send">
+      <div class="page-title">Отправить уведомление</div>
+      <div class="page-sub">Выберите хосты, настройте сообщение и отправьте</div>
+      <div class="g2">
+        <!-- Хосты -->
+        <div>
+          <div class="card">
+            <div class="card-title">Хосты</div>
+            <div id="send-hosts">
+              <div class="host-item selected" onclick="toggleHost(this)">
+                <div class="host-cb">✓</div>
+                <div class="host-online"></div>
+                <div><div class="host-name">workstation01</div><div class="host-ip">192.168.1.10</div></div>
+              </div>
+              <div class="host-item selected" onclick="toggleHost(this)">
+                <div class="host-cb">✓</div>
+                <div class="host-online"></div>
+                <div><div class="host-name">workstation02</div><div class="host-ip">192.168.1.11</div></div>
+              </div>
+              <div class="host-item" onclick="toggleHost(this)">
+                <div class="host-cb"></div>
+                <div class="host-offline"></div>
+                <div><div class="host-name">workstation03</div><div class="host-ip">192.168.1.12</div></div>
+              </div>
+              <div class="host-item selected" onclick="toggleHost(this)">
+                <div class="host-cb">✓</div>
+                <div class="host-online"></div>
+                <div><div class="host-name">server01</div><div class="host-ip">192.168.1.50</div></div>
+              </div>
+              <div class="host-item" onclick="toggleHost(this)">
+                <div class="host-cb"></div>
+                <div class="host-offline"></div>
+                <div><div class="host-name">laptop-ceo</div><div class="host-ip">192.168.1.88</div></div>
+              </div>
+            </div>
+            <div class="host-sel-info" id="sel-info">Выбрано: 3 из 5</div>
+          </div>
+        </div>
+
+        <!-- Сообщение -->
+        <div>
+          <div class="card">
+            <div class="card-title">Сообщение</div>
+            <label class="lbl">Уровень</label>
+            <div class="level-btns" style="margin-bottom:12px">
+              <button class="lvl-btn sel-info" onclick="setLevel('info',this)">ℹ Инфо</button>
+              <button class="lvl-btn" onclick="setLevel('warning',this)">⚠ Важно</button>
+              <button class="lvl-btn" onclick="setLevel('critical',this)">🚨 Тревога</button>
+            </div>
+            <label class="lbl">Тип окна</label>
+            <div class="type-btns" style="margin-bottom:12px">
+              <button class="type-btn" onclick="setType('fullscreen',this)">🖥 Полный экран</button>
+              <button class="type-btn sel" onclick="setType('popup',this)">💬 Попап</button>
+            </div>
+            <label class="lbl">Заголовок</label>
+            <input class="inp" id="msg-title" placeholder="Заголовок уведомления" value="⚠️ Обновление системы" style="margin-bottom:10px" oninput="updatePreview()">
+            <label class="lbl">Текст (Markdown)</label>
+            <textarea class="inp" id="msg-body" style="margin-bottom:10px" oninput="updatePreview()">## Не выключайте компьютер!
+
+Идёт установка обновлений безопасности.
+
+> Окно закроется автоматически</textarea>
+            <label class="lbl">Превью</label>
+            <div class="preview-box" id="preview"></div>
+          </div>
+          <div class="send-progress" id="send-progress"><div class="send-progress-i" id="send-progress-i"></div></div>
+          <div id="send-results"></div>
+          <button class="send-btn" id="send-btn" onclick="doSend()" style="margin-top:10px">
+            📢 Отправить уведомление
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ХОСТЫ -->
+    <div class="page" id="page-hosts">
+      <div class="page-title">Управление хостами</div>
+      <div class="page-sub">Добавляйте, редактируйте и удаляйте хосты</div>
+      <div class="card">
+        <div class="card-title">Добавить хост</div>
+        <div class="host-add-row">
+          <input class="inp" id="new-name" placeholder="Имя (workstation01)">
+          <input class="inp" id="new-ip" placeholder="IP адрес (192.168.1.10)">
+          <button class="add-btn" onclick="addHost()">+ Добавить</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Список хостов</div>
+        <div id="hosts-list"></div>
+      </div>
+    </div>
+
+    <!-- ШАБЛОНЫ -->
+    <div class="page" id="page-templates">
+      <div class="page-title">Шаблоны</div>
+      <div class="page-sub">Готовые сообщения для быстрой отправки</div>
+      <div id="templates-list"></div>
+    </div>
+
+    <!-- ИСТОРИЯ -->
+    <div class="page" id="page-history">
+      <div class="page-title">История рассылок</div>
+      <div class="page-sub">Последние отправленные уведомления</div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- ANSIBLE -->
+    <div class="page" id="page-ansible">
+      <div class="page-title">Ansible интеграция</div>
+      <div class="page-sub">Отправка уведомлений из плейбуков</div>
+      <div class="card">
+        <div class="card-title">Endpoint</div>
+        <div style="font-family:var(--m);font-size:12px;color:var(--blue2);background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--b)">
+          POST http://notify-server:8080/api/ansible<br>
+          X-API-Key: ansible-secret-key
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Пример плейбука</div>
+        <pre style="font-family:var(--m);font-size:12px;line-height:1.9;color:#445577;background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--b);overflow-x:auto"><span style="color:#f472b6">- name</span><span style="color:#667799">:</span> <span style="color:#00e5a0">Уведомить пользователей</span>
+  <span style="color:#f472b6">uri</span><span style="color:#667799">:</span>
+    <span style="color:#f472b6">url</span><span style="color:#667799">:</span> <span style="color:#00e5a0">"http://notify:8080/api/ansible"</span>
+    <span style="color:#f472b6">method</span><span style="color:#667799">:</span> <span style="color:#00e5a0">POST</span>
+    <span style="color:#f472b6">headers</span><span style="color:#667799">:</span>
+      <span style="color:#f472b6">X-API-Key</span><span style="color:#667799">:</span> <span style="color:#00e5a0">"ansible-secret-key"</span>
+    <span style="color:#f472b6">body_format</span><span style="color:#667799">:</span> <span style="color:#00e5a0">json</span>
+    <span style="color:#f472b6">body</span><span style="color:#667799">:</span>
+      <span style="color:#f472b6">title</span><span style="color:#667799">:</span>   <span style="color:#00e5a0">"⚠️ Обновление"</span>
+      <span style="color:#f472b6">level</span><span style="color:#667799">:</span>   <span style="color:#00e5a0">"warning"</span>
+      <span style="color:#f472b6">type</span><span style="color:#667799">:</span>    <span style="color:#00e5a0">"popup"</span>
+      <span style="color:#f472b6">timeout</span><span style="color:#667799">:</span> <span style="color:#fb923c">15</span>
+      <span style="color:#f472b6">hosts</span><span style="color:#667799">:</span>
+        <span style="color:#667799">-</span> <span style="color:#00e5a0">"{{ inventory_hostname }}"</span>
+  <span style="color:#f472b6">become</span><span style="color:#667799">:</span> <span style="color:#5b9bff">false</span></pre>
+      </div>
+    </div>
+
+    <!-- НАСТРОЙКИ -->
+    <div class="page" id="page-settings">
+      <div class="page-title">Настройки</div>
+      <div class="page-sub">Параметры сервера и безопасности</div>
+      <div class="card">
+        <div class="card-title">Рассылка</div>
+        <label class="lbl">Потоков (max_workers)</label>
+        <input class="inp" value="50" style="margin-bottom:10px">
+        <label class="lbl">Таймаут агента (сек)</label>
+        <input class="inp" value="3" style="margin-bottom:10px">
+      </div>
+      <div class="card">
+        <div class="card-title">Безопасность</div>
+        <label class="lbl">Ansible API Key</label>
+        <input class="inp" value="ansible-secret-key" style="margin-bottom:10px">
+        <label class="lbl">Agent Token</label>
+        <input class="inp" value="supersecrettoken123">
+      </div>
+      <button class="send-btn" onclick="showToast('✅','Настройки сохранены','Параметры применены')" style="margin-top:14px;max-width:200px">Сохранить</button>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✅</span>
+  <div><div class="toast-text" id="toast-text"></div><div class="toast-sub" id="toast-sub"></div></div>
+</div>
+
+<!-- FULLSCREEN DEMO OVERLAY -->
+<div class="fs-demo" id="fs-demo">
+  <div class="fs-badge" id="fs-badge"></div>
+  <div class="fs-title" id="fs-title"></div>
+  <div class="fs-divider" id="fs-divider"></div>
+  <div class="fs-text" id="fs-text"></div>
+  <button class="fs-close-btn" id="fs-close-btn" onclick="closeFsDemo()">✓ Принял к сведению</button>
+  <div class="fs-esc">ESC — закрыть</div>
+</div>
+
+<!-- POPUP DEMO -->
+<div class="popup-demo" id="popup-demo">
+  <div class="pd-strip"></div>
+  <div class="pd-body">
+    <div class="pd-head">
+      <span class="pd-level" id="pd-level">ИНФОРМАЦИЯ</span>
+      <button class="pd-x" onclick="closePopupDemo()">✕</button>
+    </div>
+    <div class="pd-title" id="pd-title"></div>
+    <div class="pd-text" id="pd-text"></div>
+    <div class="pd-bar-wrap"><div class="pd-bar" id="pd-bar"></div></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let curLevel = 'info';
+let curType  = 'popup';
+let history  = [
+  {title:'🔔 Тест системы',level:'info',hosts:3,ok:3,time:'09:15'},
+  {title:'⚠️ Обновление ядра',level:'warning',hosts:5,ok:4,time:'11:32'},
+  {title:'🚨 Учебная тревога',level:'critical',hosts:5,ok:5,time:'14:00'},
+];
+let templates = [
+  {name:'Воздушная тревога',title:'🚨 ВОЗДУШНАЯ ТРЕВОГА',body:'## Немедленно в укрытие!\n\nПокиньте рабочее место согласно инструкции.',level:'critical',type:'fullscreen'},
+  {name:'Обновление ядра',title:'⚠️ Обновление ядра',body:'## Не выключайте компьютер!\n\nИдёт установка обновлений.',level:'warning',type:'popup'},
+  {name:'Информационное',title:'ℹ️ Информация',body:'Плановые работы завершены.\n\nМожно продолжать работу.',level:'info',type:'popup'},
+];
+let hosts = [
+  {name:'workstation01',ip:'192.168.1.10',online:true},
+  {name:'workstation02',ip:'192.168.1.11',online:true},
+  {name:'workstation03',ip:'192.168.1.12',online:false},
+  {name:'server01',ip:'192.168.1.50',online:true},
+  {name:'laptop-ceo',ip:'192.168.1.88',online:false},
+];
+
+// ── NAVIGATION ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sid-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id==='history') renderHistory();
+  if(id==='hosts') renderHostsPage();
+  if(id==='templates') renderTemplates();
+}
+
+// ── SEND PAGE ──
+function toggleHost(el) {
+  el.classList.toggle('selected');
+  el.querySelector('.host-cb').textContent = el.classList.contains('selected') ? '✓' : '';
+  updateSelInfo();
+}
+function updateSelInfo() {
+  const sel = document.querySelectorAll('#send-hosts .host-item.selected').length;
+  const total = document.querySelectorAll('#send-hosts .host-item').length;
+  document.getElementById('sel-info').textContent = `Выбрано: ${sel} из ${total}`;
+}
+function setLevel(lvl, btn) {
+  curLevel = lvl;
+  document.querySelectorAll('.lvl-btn').forEach(b => b.className='lvl-btn');
+  btn.className = `lvl-btn sel-${lvl}`;
+}
+function setType(t, btn) {
+  curType = t;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function updatePreview() {
+  const txt = document.getElementById('msg-body').value;
+  let html = txt
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/\n/g,'<br>');
+  document.getElementById('preview').innerHTML = html;
+}
+updatePreview();
+
+function doSend() {
+  const title = document.getElementById('msg-title').value.trim();
+  const body  = document.getElementById('msg-body').value.trim();
+  const sel   = [...document.querySelectorAll('#send-hosts .host-item.selected')];
+  if(!title){showToast('⚠️','Укажите заголовок','Поле заголовок не может быть пустым');return}
+  if(!sel.length){showToast('⚠️','Выберите хосты','Нужно выбрать хотя бы один хост');return}
+
+  const btn = document.getElementById('send-btn');
+  const prog = document.getElementById('send-progress');
+  const progI = document.getElementById('send-progress-i');
+  btn.disabled = true;
+  btn.textContent = '⏳ Отправляем...';
+  prog.style.display='block';
+  document.getElementById('send-results').innerHTML='';
+
+  let i=0;
+  const interval = setInterval(()=>{
+    i+=10;progI.style.width=i+'%';
+    if(i>=100){
+      clearInterval(interval);
+      prog.style.display='none';
+      btn.disabled=false;
+      btn.innerHTML='📢 Отправить уведомление';
+
+      // Показать результаты
+      const resDiv = document.getElementById('send-results');
+      resDiv.innerHTML = sel.map(h=>{
+        const name = h.querySelector('.host-name').textContent;
+        const online = h.querySelector('.host-online');
+        const ok = !!online;
+        return `<div class="result-item ${ok?'res-ok':'res-err'}">${ok?'✓':'✗'} ${name} — ${ok?'доставлено':'агент недоступен'}</div>`;
+      }).join('');
+
+      // Записать в историю
+      history.unshift({title,level:curLevel,hosts:sel.length,ok:sel.filter(h=>!!h.querySelector('.host-online')).length,time:new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})});
+
+      showToast('✅','Отправлено!',`Доставлено на ${sel.filter(h=>!!h.querySelector('.host-online')).length} из ${sel.length} хостов`);
+
+      // Показать демо-окно
+      setTimeout(()=>showNotifyDemo(title, body), 600);
+    }
+  },80);
+}
+
+// ── DEMO WINDOWS ──
+function showNotifyDemo(title, body) {
+  const lvlLabels = {info:'ИНФОРМАЦИЯ',warning:'ПРЕДУПРЕЖДЕНИЕ',critical:'ТРЕВОГА'};
+  const lvlClasses = {info:'pd-info fsd-info',warning:'pd-warning fsd-warning',critical:'pd-critical fsd-critical'};
+
+  if(curType === 'popup') {
+    const pd = document.getElementById('popup-demo');
+    pd.className = 'popup-demo show pd-'+curLevel;
+    document.getElementById('pd-level').textContent = lvlLabels[curLevel];
+    document.getElementById('pd-title').textContent = title;
+    let plain = body.replace(/^#+\s/gm,'').replace(/\*\*/g,'').replace(/^>\s/gm,'').trim();
+    document.getElementById('pd-text').textContent = plain.slice(0,120);
+    // Reset bar animation
+    const bar = document.getElementById('pd-bar');
+    bar.style.animation='none';bar.offsetHeight;bar.style.animation='';
+    setTimeout(()=>closePopupDemo(),9000);
+  } else {
+    const fs = document.getElementById('fs-demo');
+    fs.className = 'fs-demo show fsd-'+curLevel;
+    document.getElementById('fs-badge').textContent = lvlLabels[curLevel];
+    document.getElementById('fs-title').textContent = title;
+    let plain = body.replace(/^#+\s/gm,'').replace(/\*\*/g,'').replace(/^>\s/gm,'').replace(/\n+/g,'\n').trim();
+    document.getElementById('fs-text').textContent = plain;
+  }
+}
+function closeFsDemo() { document.getElementById('fs-demo').classList.remove('show'); }
+function closePopupDemo() { document.getElementById('popup-demo').classList.remove('show'); }
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape'){closeFsDemo();closePopupDemo();}
+});
+
+// ── HISTORY ──
+function renderHistory() {
+  const lvlBadge = {info:'hb-info',warning:'hb-warning',critical:'hb-critical'};
+  document.getElementById('history-list').innerHTML = history.map(h=>`
+    <div class="hist-item">
+      <span class="hist-badge ${lvlBadge[h.level]}">${h.level.toUpperCase()}</span>
+      <div><div class="hist-title">${h.title}</div><div class="hist-meta">${h.time} · ${h.hosts} хостов</div></div>
+      <span class="hist-ok">✓ ${h.ok}/${h.hosts}</span>
+    </div>`).join('');
+}
+
+// ── HOSTS PAGE ──
+function renderHostsPage() {
+  document.getElementById('hosts-list').innerHTML = hosts.map((h,i)=>`
+    <div class="host-item" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="${h.online?'host-online':'host-offline'}"></div>
+        <div><div class="host-name">${h.name}</div><div class="host-ip">${h.ip}</div></div>
+      </div>
+      <button onclick="removeHost(${i})" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:16px;padding:4px 8px" title="Удалить">✕</button>
+    </div>`).join('');
+}
+function addHost() {
+  const name = document.getElementById('new-name').value.trim();
+  const ip   = document.getElementById('new-ip').value.trim();
+  if(!name||!ip){showToast('⚠️','Заполните поля','Укажите имя и IP адрес');return}
+  hosts.push({name,ip,online:true});
+  document.getElementById('new-name').value='';
+  document.getElementById('new-ip').value='';
+  renderHostsPage();
+  showToast('✅','Хост добавлен',`${name} (${ip})`);
+}
+function removeHost(i) { hosts.splice(i,1); renderHostsPage(); showToast('🗑','Хост удалён',''); }
+
+// ── TEMPLATES ──
+function renderTemplates() {
+  document.getElementById('templates-list').innerHTML = templates.map(t=>`
+    <div class="card" style="cursor:pointer" onclick="applyTemplate(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:700">${t.name}</div>
+        <span class="hist-badge hb-${t.level}">${t.level.toUpperCase()}</span>
+      </div>
+      <div style="font-size:13px;color:var(--t2)">${t.title}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px">${t.type === 'fullscreen' ? '🖥 Полный экран' : '💬 Попап'}</div>
+    </div>`).join('');
+}
+function applyTemplate(t) {
+  document.getElementById('msg-title').value = t.title;
+  document.getElementById('msg-body').value = t.body;
+  curLevel = t.level;
+  curType  = t.type;
+  document.querySelectorAll('.lvl-btn').forEach(b=>b.className='lvl-btn');
+  document.querySelector(`.lvl-btn:nth-child(${t.level==='info'?1:t.level==='warning'?2:3})`).className=`lvl-btn sel-${t.level}`;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelector(`.type-btn:nth-child(${t.type==='fullscreen'?1:2})`).classList.add('sel');
+  updatePreview();
+  showPage('send');
+  document.querySelectorAll('.sid-item')[0].classList.add('active');
+  showToast('📋','Шаблон применён',t.name);
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(icon,text,sub) {
+  clearTimeout(toastTimer);
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-text').textContent=text;
+  document.getElementById('toast-sub').textContent=sub;
+  document.getElementById('toast').classList.add('show');
+  toastTimer=setTimeout(()=>document.getElementById('toast').classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
