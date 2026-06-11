@@ -6,6 +6,7 @@
 
 **Автор:** [@PapaBorscht](https://t.me/PapaBorscht)  
 **Почта:** [me@ntfypush.ru](mailto:me@ntfypush.ru)  
+**Сайт:** https://papaborscht.github.io/Notify/
 **Платформа:** GNU/Linux · Python 3.8+  
 **Версия:** 3.0  
 **Лицензия:** MIT
