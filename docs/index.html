@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Notify — Emergency Broadcast System for Linux</title>
+<meta name="description" content="Система экстренного оповещения для корпоративных Linux-рабочих станций. Fullscreen тревога и попапы из браузера или Ansible.">
+<meta property="og:title" content="Notify — Мгновенная система отправки уведомлений">
+<meta property="og:description" content="Мгновенные уведомления на все рабочие станции Linux. Без облаков. Без интернета.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box }
+
+:root {
+  --bg: #010408;
+  --bg2: #06090f;
+  --bg3: #0a1020;
+  --border: #111d35;
+  --border2: #1a2d50;
+  --blue: #3b7fff;
+  --blue2: #5b9bff;
+  --blue3: #1a4ecc;
+  --cyan: #06d6f0;
+  --red: #ff3355;
+  --amber: #ffaa00;
+  --green: #00e5a0;
+  --purple: #9060ff;
+  --t1: #eef2ff;
+  --t2: #5d6f9a;
+  --t3: #1a2a50;
+  --f: 'Inter', sans-serif;
+  --m: 'JetBrains Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--t1); font-family: var(--f); overflow-x: hidden; }
+
+/* ─── CANVAS BG ─── */
+#canvas { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.6; }
+
+/* ─── NAV ─── */
+header {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  padding: 0 56px; height: 68px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(1,4,8,.75); backdrop-filter: blur(32px) saturate(180%);
+  border-bottom: 1px solid rgba(59,127,255,.08);
+}
+.logo { display:flex; align-items:center; gap:12px; text-decoration:none; }
+.logo-box {
+  width:38px; height:38px; border-radius:11px;
+  background: linear-gradient(135deg, #1a4ecc, #3b7fff);
+  display: flex; align-items:center; justify-content:center;
+  font-size:20px; position:relative;
+  box-shadow: 0 0 30px rgba(59,127,255,.5), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.logo-box::after {
+  content:''; position:absolute; top:-3px; right:-3px;
+  width:10px; height:10px; border-radius:50%;
+  background: var(--red); border: 2px solid var(--bg);
+  box-shadow: 0 0 10px var(--red);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { transform: scale(1); box-shadow: 0 0 10px var(--red); }
+  50% { transform: scale(1.3); box-shadow: 0 0 20px var(--red), 0 0 40px rgba(255,51,85,.4); }
+}
+.logo-name { font-size:18px; font-weight:800; letter-spacing:-.5px; color:var(--t1); }
+.logo-v { font-family:var(--m); font-size:10px; color:var(--t2); margin-left:-2px; }
+nav { display:flex; gap:2px; }
+.n { color:var(--t2); text-decoration:none; font-size:13px; font-weight:500; padding:8px 16px; border-radius:8px; transition:.2s; }
+.n:hover { color:var(--t1); background:rgba(255,255,255,.04); }
+.hbtns { display:flex; gap:10px; align-items:center; }
+.hb1 {
+  display:flex; align-items:center; gap:7px; color:var(--t2);
+  text-decoration:none; font-size:13px; font-weight:600;
+  padding:8px 18px; border-radius:9px; border:1px solid var(--border2);
+  transition:.2s;
+}
+.hb1:hover { color:var(--t1); border-color:var(--blue); }
+.hb2 {
+  display:flex; align-items:center; gap:7px; color:#fff;
+  text-decoration:none; font-size:13px; font-weight:700;
+  padding:9px 22px; border-radius:9px;
+  background: linear-gradient(135deg, #1a4ecc, #3b7fff);
+  box-shadow: 0 4px 24px rgba(59,127,255,.45);
+  transition:.2s;
+}
+.hb2:hover { box-shadow: 0 4px 40px rgba(59,127,255,.7); transform:translateY(-1px); }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:100px 20px 60px;
+  position:relative; z-index:1;
+}
+.hero-chip {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(59,127,255,.07); border:1px solid rgba(59,127,255,.18);
+  border-radius:100px; padding:6px 18px; margin-bottom:44px;
+  font-family:var(--m); font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--blue2); animation: up .8s ease both;
+}
+.chip-dot { width:6px; height:6px; border-radius:50%; background:var(--red); box-shadow:0 0 8px var(--red); animation:pulse-dot 1.5s infinite; }
+
+.hero-h {
+  font-size: clamp(64px,11vw,128px);
+  font-weight:900; line-height:.9; letter-spacing:-6px;
+  animation: up .8s .06s ease both;
+  margin-bottom: 6px;
+}
+.h-w { display:block; color:var(--t1); }
+.h-g {
+  display:block;
+  background: linear-gradient(125deg, #60a5fa, #818cf8, #22d3ee, #60a5fa);
+  background-size: 300% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  animation: up .8s .06s ease both, shine 5s linear infinite;
+}
+.h-w2 { display:block; color: rgba(238,242,255,.35); }
+@keyframes shine { to { background-position:300% center; } }
+
+.hero-p {
+  font-size: clamp(16px,2vw,20px); color:var(--t2); font-weight:400; line-height:1.8;
+  max-width:560px; margin:36px auto 52px;
+  animation: up .8s .12s ease both;
+}
+.hero-p strong { color:var(--t1); font-weight:600; }
+
+.hero-cta { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; animation: up .8s .18s ease both; }
+.cta1 {
+  display:inline-flex; align-items:center; gap:9px;
+  background: linear-gradient(135deg,#1a4ecc,#3b7fff);
+  color:#fff; padding:16px 36px; border-radius:12px;
+  font-size:15px; font-weight:700; text-decoration:none;
+  box-shadow: 0 8px 48px rgba(59,127,255,.5);
+  transition:.25s; font-family:var(--f);
+}
+.cta1:hover { transform:translateY(-3px); box-shadow:0 12px 64px rgba(59,127,255,.7); }
+.cta2 {
+  display:inline-flex; align-items:center; gap:9px;
+  background:rgba(255,255,255,.03); color:var(--t1);
+  padding:16px 36px; border-radius:12px;
+  font-size:15px; font-weight:700; text-decoration:none;
+  border:1px solid var(--border2); transition:.25s; font-family:var(--f);
+}
+.cta2:hover { border-color:var(--blue2); color:var(--blue2); background:rgba(59,127,255,.05); }
+
+/* ─── HERO VISUAL ─── */
+.hero-visual { margin-top:80px; width:100%; max-width:920px; animation: up .8s .28s ease both; position:relative; }
+.hero-visual::before {
+  content:''; position:absolute; inset:-2px; border-radius:22px; z-index:-1;
+  background: conic-gradient(from 0deg, #3b7fff, #818cf8, #22d3ee, #3b7fff);
+  animation: spin-slow 8s linear infinite; filter:blur(2px); opacity:.5;
+}
+@keyframes spin-slow { to { transform:rotate(360deg); } }
+.term-shell {
+  background:#050b1a; border-radius:20px; overflow:hidden;
+  border:1px solid rgba(59,127,255,.15);
+  box-shadow:0 48px 128px rgba(0,0,0,.95);
+  position:relative; z-index:1;
+}
+.tsh-bar {
+  background:#080f22; padding:15px 22px;
+  display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid rgba(59,127,255,.08);
+}
+.tdots { display:flex; gap:8px; }
+.tdots span { width:13px; height:13px; border-radius:50%; }
+.t-r{background:#ff5f56} .t-y{background:#ffbd2e} .t-g{background:#27c93f}
+.tsh-title { font-family:var(--m); font-size:12px; color:var(--t3); margin-left:8px; }
+.tsh-body { padding:28px 32px; text-align:left; }
+.tl { font-family:var(--m); font-size:13px; line-height:2.2; display:block; }
+.tc{color:#1e3460} .tg{color:var(--green)} .tb{color:var(--blue2)} .ty{color:var(--amber)} .tw{color:#7888cc} .tr2{color:var(--red)}
+.cur { display:inline-block; width:10px; height:15px; background:var(--blue2); border-radius:2px; animation:blink-cur 1.1s step-end infinite; vertical-align:middle; margin-left:3px; }
+@keyframes blink-cur { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ─── METRICS ─── */
+.metrics {
+  position:relative; z-index:1;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  background: var(--bg2);
+}
+.metric {
+  padding:40px 20px; text-align:center; border-right:1px solid var(--border);
+  position:relative; overflow:hidden; cursor:default;
+}
+.metric:last-child { border-right:none; }
+.metric::before {
+  content:''; position:absolute; bottom:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg,transparent,var(--blue),transparent);
+  transform:scaleX(0); transition:.4s;
+}
+.metric:hover::before { transform:scaleX(1); }
+.metric:hover .mv { color:var(--t1); }
+.mv { font-family:var(--m); font-size:44px; font-weight:700; color:var(--blue2); display:block; letter-spacing:-2px; transition:.3s; }
+.ml { font-size:12px; color:var(--t2); text-transform:uppercase; letter-spacing:1.5px; margin-top:8px; display:block; }
+
+/* ─── SECTION ─── */
+.wrap { position:relative; z-index:1; max-width:1160px; margin:0 auto; padding:110px 24px; }
+.s-label {
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:var(--m); font-size:11px; color:var(--blue2);
+  text-transform:uppercase; letter-spacing:2.5px; margin-bottom:22px;
+}
+.s-label::before { content:''; width:24px; height:1px; background:var(--blue2); }
+.s-title { font-size:clamp(38px,5vw,64px); font-weight:900; letter-spacing:-3px; line-height:1.0; margin-bottom:22px; }
+.s-sub { font-size:17px; color:var(--t2); max-width:520px; line-height:1.85; }
+
+/* ─── SCREENSHOTS ─── */
+.shots-section { position:relative; z-index:1; padding:80px 0 100px; }
+.shots-hd { text-align:center; padding:0 20px; margin-bottom:64px; }
+.shots-hd .s-label { justify-content:center; }
+.shots-hd .s-title { letter-spacing:-3px; }
+.gallery {
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:auto auto auto;
+  gap:16px; padding:0 32px; max-width:1300px; margin:0 auto;
+}
+.gitem {
+  position:relative; border-radius:18px; overflow:hidden;
+  border:1px solid var(--border); cursor:pointer;
+  transition: transform .3s ease, border-color .3s, box-shadow .3s;
+  background:var(--bg2);
+}
+.gitem:hover { transform:translateY(-6px) scale(1.01); border-color:rgba(59,127,255,.4); box-shadow:0 24px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(59,127,255,.2); }
+.gitem-wide { grid-column: span 2; }
+.gitem img { width:100%; display:block; aspect-ratio:16/9; object-fit:cover; }
+.gitem-info {
+  position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(1,4,8,.98) 0%, rgba(1,4,8,.6) 40%, transparent 70%);
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding:20px; opacity:0; transition:.3s;
+}
+.gitem:hover .gitem-info { opacity:1; }
+.gi-title { font-size:14px; font-weight:700; color:var(--t1); margin-bottom:4px; }
+.gi-desc { font-size:12px; color:var(--t2); line-height:1.5; }
+.gi-tag {
+  position:absolute; top:14px; left:14px;
+  font-family:var(--m); font-size:10px; font-weight:700; letter-spacing:.5px;
+  padding:4px 12px; border-radius:20px; text-transform:uppercase;
+}
+.tag-p { background:rgba(59,127,255,.2); color:var(--blue2); border:1px solid rgba(59,127,255,.3); }
+.tag-f { background:rgba(255,51,85,.2); color:var(--red); border:1px solid rgba(255,51,85,.3); }
+.tag-pop { background:rgba(6,214,240,.15); color:var(--cyan); border:1px solid rgba(6,214,240,.25); }
+.tag-a { background:rgba(144,96,255,.2); color:#b08aff; border:1px solid rgba(144,96,255,.3); }
+
+/* ─── FEATURES ─── */
+.feat-g {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  border:1px solid var(--border); border-radius:22px; overflow:hidden;
+  margin-top:68px; background:var(--border);
+  gap:1px;
+}
+.feat {
+  background:var(--bg2); padding:38px; position:relative; overflow:hidden;
+  transition:background .3s;
+}
+.feat:hover { background:var(--bg3); }
+.feat-shine {
+  position:absolute; width:240px; height:240px; border-radius:50%;
+  opacity:0; transition:.4s; pointer-events:none; top:-80px; right:-80px;
+  transform:translate(0,0);
+}
+.feat:hover .feat-shine { opacity:1; }
+.feat-ico { font-size:32px; margin-bottom:22px; display:block; }
+.feat-name { font-size:16px; font-weight:700; margin-bottom:12px; color:var(--t1); }
+.feat-desc { font-size:13px; color:var(--t2); line-height:1.85; }
+code { font-family:var(--m); font-size:11px; background:rgba(59,127,255,.1); color:var(--blue2); padding:2px 7px; border-radius:4px; }
+
+/* ─── WINDOW DEMOS ─── */
+.wd-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:68px; }
+.wd {
+  border-radius:22px; overflow:hidden; border:1px solid;
+  position:relative;
+}
+.wd-full { border-color:rgba(255,51,85,.2); background:linear-gradient(155deg,#0a0203,#180508,#0f0203); }
+.wd-pop  { border-color:rgba(59,127,255,.2); background:linear-gradient(155deg,#020510,#061226,#03091c); }
+.wd-head {
+  padding:16px 22px; display:flex; align-items:center; justify-content:space-between;
+  font-family:var(--m); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.wd-full .wd-head { color:var(--red); background:rgba(255,51,85,.05); }
+.wd-pop  .wd-head { color:var(--blue2); background:rgba(59,127,255,.05); }
+.wd-body { padding:34px; }
+.wd-ico { font-size:42px; margin-bottom:20px; }
+.wd-title { font-size:24px; font-weight:800; margin-bottom:12px; letter-spacing:-.5px; }
+.wd-text { font-size:13px; color:var(--t2); line-height:1.8; margin-bottom:24px; }
+.wd-btn { display:inline-block; padding:12px 28px; border-radius:10px; font-size:13px; font-weight:700; font-family:var(--f); }
+.wd-full .wd-btn { background:var(--red); color:#fff; box-shadow:0 4px 24px rgba(255,51,85,.35); }
+.wd-pop  .wd-btn { background:rgba(59,127,255,.12); color:var(--blue2); border:1px solid rgba(59,127,255,.25); }
+.wd-bar { height:3px; border-radius:2px; background:rgba(59,127,255,.12); margin-top:20px; overflow:hidden; }
+.wd-bar-i { height:100%; width:62%; background:linear-gradient(90deg,var(--blue),var(--cyan)); border-radius:2px; animation:shrink 8s linear infinite; }
+@keyframes shrink { from{width:100%} to{width:0%} }
+
+/* ─── ANSIBLE ─── */
+.ansible-layout { display:grid; grid-template-columns:1fr 1.15fr; gap:72px; align-items:start; margin-top:68px; }
+.a-steps { display:flex; flex-direction:column; }
+.a-step { display:flex; gap:22px; padding-bottom:40px; position:relative; }
+.a-step:not(:last-child)::after { content:''; position:absolute; left:21px; top:46px; bottom:0; width:1px; background:linear-gradient(var(--border2),transparent); }
+.a-n { width:44px; height:44px; flex-shrink:0; border-radius:50%; background:rgba(59,127,255,.07); border:1px solid rgba(59,127,255,.18); display:flex; align-items:center; justify-content:center; font-family:var(--m); font-size:13px; font-weight:700; color:var(--blue2); }
+.a-text h4 { font-size:15px; font-weight:700; margin-bottom:6px; padding-top:10px; }
+.a-text p { font-size:13px; color:var(--t2); line-height:1.75; }
+.codebox { background:#030811; border:1px solid var(--border); border-radius:20px; overflow:hidden; position:relative; }
+.codebox::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 0% 0%,rgba(59,127,255,.06),transparent 60%); pointer-events:none; }
+.cb-head { display:flex; align-items:center; gap:10px; padding:15px 24px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.012); }
+.cbdots { display:flex; gap:7px; }
+.cbdots span { width:12px; height:12px; border-radius:50%; }
+.cdr{background:#ff5f56} .cdy{background:#ffbd2e} .cdg{background:#27c93f}
+.cb-fn { font-family:var(--m); font-size:11px; color:var(--t3); margin-left:8px; }
+.cb-body { padding:26px 30px; overflow-x:auto; }
+pre { font-family:var(--m); font-size:12.5px; line-height:2.1; color:#445577; }
+.kw{color:var(--blue2)} .str{color:var(--green)} .cm{color:#1a2e50} .ky{color:#f472b6} .nm{color:#fb923c} .op{color:#667799}
+
+/* ─── PLATFORMS ─── */
+.pl-wrap { display:flex; flex-wrap:wrap; gap:10px; margin-top:52px; }
+.pl {
+  display:flex; align-items:center; gap:9px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:10px; padding:11px 18px; font-size:13px; font-weight:500;
+  transition:.2s; cursor:default;
+}
+.pl:hover { border-color:var(--blue); color:var(--blue2); }
+.pl-d { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); flex-shrink:0; }
+
+/* ─── LEVEL TABLE ─── */
+.lvl-table { width:100%; border-collapse:collapse; margin-top:56px; border-radius:18px; overflow:hidden; border:1px solid var(--border); }
+.lvl-table th { text-align:left; padding:15px 22px; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--t3); background:var(--bg3); font-family:var(--m); font-weight:700; }
+.lvl-table td { padding:16px 22px; border-top:1px solid var(--border); font-size:13px; vertical-align:middle; }
+.lvl-table tr:hover td { background:rgba(59,127,255,.02); }
+.lbadge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:7px; font-family:var(--m); font-size:11px; font-weight:700; }
+.lb-r { background:rgba(255,51,85,.1); color:var(--red); border:1px solid rgba(255,51,85,.2); }
+.lb-b { background:rgba(59,127,255,.1); color:var(--blue2); border:1px solid rgba(59,127,255,.2); }
+.lb-a { background:rgba(255,170,0,.1); color:var(--amber); border:1px solid rgba(255,170,0,.2); }
+.lb-g { background:rgba(0,229,160,.1); color:var(--green); border:1px solid rgba(0,229,160,.2); }
+.r-full { color:var(--red); font-weight:700; font-size:12px; }
+.r-pop  { color:var(--cyan); font-weight:700; font-size:12px; }
+
+/* ─── CTA ─── */
+.cta-section {
+  position:relative; z-index:1; text-align:center;
+  padding:140px 20px; border-top:1px solid var(--border); overflow:hidden;
+}
+.cta-bg {
+  position:absolute; width:1000px; height:600px; left:50%; top:50%;
+  transform:translate(-50%,-50%); pointer-events:none; border-radius:50%;
+  background:radial-gradient(ellipse,rgba(59,127,255,.1) 0%,rgba(129,140,248,.05) 40%,transparent 70%);
+}
+.cta-h { font-size:clamp(48px,7vw,88px); font-weight:900; letter-spacing:-4px; margin-bottom:24px; position:relative; }
+.cta-accent {
+  background:linear-gradient(120deg,var(--blue2),var(--cyan));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.cta-p { font-size:19px; color:var(--t2); margin-bottom:56px; position:relative; }
+.cta-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; position:relative; }
+.cta-contacts { display:flex; gap:32px; justify-content:center; margin-top:44px; flex-wrap:wrap; }
+.cc { display:flex; align-items:center; gap:7px; color:var(--t2); text-decoration:none; font-size:14px; transition:.2s; }
+.cc:hover { color:var(--blue2); }
+
+/* ─── FOOTER ─── */
+footer {
+  position:relative; z-index:1; background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:30px 56px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;
+}
+.ft-l { font-family:var(--m); font-size:12px; color:var(--t3); }
+.ft-r { display:flex; gap:28px; }
+.ft-r a { font-size:12px; color:var(--t2); text-decoration:none; transition:.2s; }
+.ft-r a:hover { color:var(--t1); }
+
+/* ─── ANIMATIONS ─── */
+@keyframes up { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+.reveal { opacity:0; transform:translateY(36px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.show { opacity:1; transform:none; }
+.d1{transition-delay:.1s} .d2{transition-delay:.2s} .d3{transition-delay:.3s}
+
+@media(max-width:1000px) {
+  .feat-g { grid-template-columns:repeat(2,1fr); }
+  .ansible-layout { grid-template-columns:1fr; }
+  .gallery { grid-template-columns:1fr 1fr; padding:0 20px; }
+  .gitem-wide { grid-column:span 2; }
+}
+@media(max-width:680px) {
+  header { padding:0 18px; }
+  nav, .hb1 { display:none; }
+  .metrics { grid-template-columns:1fr 1fr; }
+  .metric:nth-child(2) { border-right:none; }
+  .wd-grid { grid-template-columns:1fr; }
+  .gallery { grid-template-columns:1fr; }
+  .gitem-wide { grid-column:span 1; }
+  footer { flex-direction:column; text-align:center; padding:24px; }
+}
+
+/* ─── LIGHTBOX ─── */
+.lb-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(1,4,8,.96);
+  backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.lb-overlay.open {
+  opacity: 1; pointer-events: all;
+}
+.lb-wrap {
+  position: relative; max-width: 92vw; max-height: 88vh;
+  transform: scale(.9) translateY(20px);
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.lb-overlay.open .lb-wrap {
+  transform: scale(1) translateY(0);
+}
+.lb-img {
+  display: block; max-width: 100%; max-height: 88vh;
+  border-radius: 16px;
+  border: 1px solid rgba(59,127,255,.25);
+  box-shadow: 0 48px 120px rgba(0,0,0,.9), 0 0 0 1px rgba(59,127,255,.15);
+}
+.lb-close {
+  position: absolute; top: -16px; right: -16px;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(59,127,255,.15); border: 1px solid rgba(59,127,255,.3);
+  color: var(--t1); font-size: 18px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .2s; line-height: 1;
+}
+.lb-close:hover { background: rgba(59,127,255,.35); transform: scale(1.1); }
+.lb-caption {
+  text-align: center; margin-top: 16px; color: var(--t2); font-size: 14px;
+}
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(59,127,255,.12); border: 1px solid rgba(59,127,255,.25);
+  color: var(--t1); font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .2s;
+}
+.lb-nav:hover { background: rgba(59,127,255,.3); }
+.lb-prev { right: calc(100% + 16px); }
+.lb-next { left:  calc(100% + 16px); }
+.lb-counter {
+  position: absolute; bottom: -36px; left: 50%; transform: translateX(-50%);
+  font-family: var(--m); font-size: 12px; color: var(--t3);
+}
+.gitem { cursor: zoom-in; }
+
+/* ─── QUICK START TWO TERMINALS ─── */
+.qs-wrap {
+  margin-top: 80px;
+  width: 100%;
+  max-width: 1060px;
+  animation: up .8s .28s ease both;
+}
+.qs-label {
+  display: flex; align-items: center; gap: 16px;
+  justify-content: center; margin-bottom: 32px;
+}
+.qs-line { flex: 1; max-width: 120px; height: 1px; background: linear-gradient(90deg, transparent, rgba(59,127,255,.3)); }
+.qs-line:last-child { background: linear-gradient(90deg, rgba(59,127,255,.3), transparent); }
+.qs-text {
+  font-family: var(--m); font-size: 11px; font-weight: 700;
+  color: var(--blue2); text-transform: uppercase; letter-spacing: 2.5px;
+  white-space: nowrap;
+}
+.qs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.qs-grid .hero-visual {
+  margin-top: 0;
+  max-width: 100%;
+  animation: none;
+  width: 100%;
+}
+@media(max-width:768px) {
+  .qs-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ANIMATED CANVAS BACKGROUND -->
+<canvas id="canvas"></canvas>
+
+<!-- HEADER -->
+<header>
+  <a href="#" class="logo">
+    <div class="logo-box">📢</div>
+    <span class="logo-name">Notify</span>
+    <span class="logo-v">v3.0</span>
+  </a>
+  <nav>
+    <a href="#screenshots" class="n">Скриншоты</a>
+    <a href="#features" class="n">Возможности</a>
+    <a href="#ansible" class="n">Ansible</a>
+    <a href="#platforms" class="n">Платформы</a>
+  </nav>
+  <div class="hbtns">
+    <a href="https://github.com/PapaBorscht/Notify" class="hb1" target="_blank">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+    <a href="https://github.com/PapaBorscht/Notify" class="hb2" target="_blank">Попробовать →</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-chip"><span class="chip-dot"></span>Open Source · MIT · GNU/Linux</div>
+  <h1 class="hero-h">
+    <span class="h-w">Мгновенная</span>
+    <span class="h-g">Система</span>
+    <span class="h-w2">Оповещений</span>
+  </h1>
+  <p class="hero-p">
+    <strong>Мгновенные уведомления на все рабочие станции <br>под OS GNU/unix.</strong><br>
+    Полноэкранная тревога во весь экран или <br>попап снизу-справа — отправка из браузера, а так же Ansible. Без облаков. Без интернета. Только ваша сеть.
+  </p>
+  <div class="hero-cta">
+    <a href="https://github.com/PapaBorscht/Notify" class="cta1" target="_blank">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      Скачать на GitHub
+    </a>
+    <a href="#screenshots" class="cta2">Смотреть скриншоты ↓</a>
+  </div>
+
+  <!-- Быстрый старт — два терминала -->
+  <div class="qs-wrap">
+    <div class="qs-label">
+      <span class="qs-line"></span>
+      <span class="qs-text">Быстрый старт</span>
+      <span class="qs-line"></span>
+    </div>
+    <div class="qs-grid">
+
+      <!-- Панель -->
+      <div class="hero-visual">
+        <div class="term-shell">
+          <div class="tsh-bar">
+            <div class="tdots"><span class="t-r"></span><span class="t-y"></span><span class="t-g"></span></div>
+            <span class="tsh-title">Установка панели управления</span>
+          </div>
+          <div class="tsh-body">
+            <span class="tl"><span class="tc">$</span> <span class="tg">cd</span> /tmp</span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">wget</span> <span class="tb">https://github.com/PapaBorscht/</span></span>
+            <span class="tl">  <span class="tb">Notify/archive/refs/heads/main.zip</span></span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">unzip</span> main.zip</span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">cd</span> /tmp/Notify-main/</span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">bash</span> install-panel.sh</span>
+            <span class="tl">&nbsp;</span>
+            <span class="tl"><span class="tg">[OK]</span>  Панель запущена на порту <span class="tb">8080</span></span>
+            <span class="tl"><span class="tw">Открыть: </span><span class="tb">http://localhost:8080</span></span>
+            <span class="tl"><span class="tw">Логин: </span><span class="tg">admin</span>  <span class="tw">Пароль: </span><span class="tg">admin123</span></span>
+            <span class="tl"><span class="tc">$</span><span class="cur"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Агент -->
+      <div class="hero-visual">
+        <div class="term-shell">
+          <div class="tsh-bar">
+            <div class="tdots"><span class="t-r"></span><span class="t-y"></span><span class="t-g"></span></div>
+            <span class="tsh-title">Установка агента на хосты</span>
+          </div>
+          <div class="tsh-body">
+            <span class="tl"><span class="tc">$</span> <span class="tg">cd</span> /tmp</span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">wget</span> <span class="tb">https://github.com/PapaBorscht/</span></span>
+            <span class="tl">  <span class="tb">Notify/archive/refs/heads/main.zip</span></span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">unzip</span> main.zip</span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">cd</span> /tmp/Notify-main/</span>
+            <span class="tl"><span class="tc">$</span> <span class="tg">bash</span> install-agent.sh</span>
+            <span class="tl">&nbsp;</span>
+            <span class="tl"><span class="tg">[OK]</span>  Агент запущен, порт <span class="tb">9988</span> ✓</span>
+            <span class="tl"><span class="tg">[OK]</span>  Systemd + XDG autostart</span>
+            <span class="tl"><span class="tg">[OK]</span>  Установка завершена!</span>
+            <span class="tl"><span class="tc">$</span><span class="cur"></span></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="metric"><span class="mv">400+</span><span class="ml">хостов за раз</span></div>
+  <div class="metric"><span class="mv">&lt;15с</span><span class="ml">время рассылки</span></div>
+  <div class="metric"><span class="mv">50</span><span class="ml">автотестов</span></div>
+  <div class="metric"><span class="mv">0</span><span class="ml">зависимостей</span></div>
+</div>
+
+<!-- SCREENSHOTS -->
+<section class="shots-section" id="screenshots">
+  <div class="shots-hd reveal">
+    <div class="s-label">Скриншоты</div>
+    <h2 class="s-title">Видно всё — и администратору<br>и пользователю</h2>
+  </div>
+  <div class="gallery">
+    <div class="gitem gitem-wide reveal">
+      <img src="https://allwebs.ru/images/2026/06/04/9d65191d9a3ad3b07cb1d3066fedc992.png" alt="Панель управления">
+      <span class="gi-tag tag-p">Панель управления</span>
+      <div class="gitem-info">
+        <div class="gi-title">Отправка уведомлений</div>
+        <div class="gi-desc">Выбор хостов, уровня, типа окна и Markdown-текст с превью в реальном времени</div>
+      </div>
+    </div>
+    <div class="gitem reveal d1">
+      <img src="https://allwebs.ru/images/2026/06/04/ab2d4b76b958711f38a549fe8a4984f2.png" alt="Хосты">
+      <span class="gi-tag tag-p">Хосты</span>
+      <div class="gitem-info">
+        <div class="gi-title">Управление хостами</div>
+        <div class="gi-desc">Добавление, группировка, массовый импорт списком</div>
+      </div>
+    </div>
+    <div class="gitem reveal">
+      <img src="https://allwebs.ru/images/2026/06/03/c2d2704de9d223956c2f009bcf08240a.png" alt="Fullscreen Info">
+      <span class="gi-tag tag-f">Fullscreen · Info</span>
+      <div class="gitem-info">
+        <div class="gi-title">Полноэкранное — информация</div>
+        <div class="gi-desc">Синий фон. Markdown-текст. Захват экрана до подтверждения</div>
+      </div>
+    </div>
+    <div class="gitem reveal d1">
+      <img src="https://allwebs.ru/images/2026/06/03/1077c529c53f96d3e568a735864e1e19.png" alt="Fullscreen Critical">
+      <span class="gi-tag tag-f">Fullscreen · Critical</span>
+      <div class="gitem-info">
+        <div class="gi-title">Критическая тревога</div>
+        <div class="gi-desc">Красный фон. Захват клавиатуры. Только кнопка закроет окно</div>
+      </div>
+    </div>
+    <div class="gitem reveal">
+      <img src="https://allwebs.ru/images/2026/06/03/768471f503d8101babb8c1c97811dc72.png" alt="Popup">
+      <span class="gi-tag tag-pop">Popup</span>
+      <div class="gitem-info">
+        <div class="gi-title">Всплывающий попап</div>
+        <div class="gi-desc">Снизу-справа. Прогресс-бар. Не блокирует работу</div>
+      </div>
+    </div>
+    <div class="gitem reveal d1">
+      <img src="https://allwebs.ru/images/2026/06/03/7fa3d083a13ea2250406f572d04bc3c1.png" alt="Отправка">
+      <span class="gi-tag tag-p">Результат отправки</span>
+      <div class="gitem-info">
+        <div class="gi-title">Статус доставки</div>
+        <div class="gi-desc">Результат по каждому хосту — доставлено или ошибка</div>
+      </div>
+    </div>
+    <div class="gitem reveal">
+      <img src="https://allwebs.ru/images/2026/06/03/1519c50b2015e02ffa61f3aae58b979e.png" alt="Ansible">
+      <span class="gi-tag tag-a">Ansible</span>
+      <div class="gitem-info">
+        <div class="gi-title">Ansible-интеграция</div>
+        <div class="gi-desc">Попап появляется на рабочем столе во время плейбука</div>
+      </div>
+    </div>
+    <div class="gitem reveal d1">
+      <img src="https://allwebs.ru/images/2026/06/03/f15fd414909831f500f2e9bbac6470aa.png" alt="Ansible Warning">
+      <span class="gi-tag tag-a">Ansible · Warning</span>
+      <div class="gitem-info">
+        <div class="gi-title">Обновление безопасности</div>
+        <div class="gi-desc">Пользователь видит предупреждение и не выключает компьютер</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="wrap" id="features">
+  <div class="reveal">
+    <div class="s-label">Возможности</div>
+    <h2 class="s-title">Всё для корпоративных<br>оповещений в GNU/UNIX</h2>
+    <p class="s-sub">Один файл. Одна команда. Работает без интернета и облаков — только внутри вашей инфраструктуры.</p>
+  </div>
+  <div class="feat-g reveal d1">
+    <div class="feat"><div class="feat-shine" style="background:radial-gradient(circle,rgba(255,51,85,.14),transparent)"></div><span class="feat-ico">🚨</span><div class="feat-name">Полноэкранная тревога</div><div class="feat-desc">Захватывает весь экран и клавиатуру. Нельзя закрыть без нажатия кнопки. Для воздушных тревог, кибератак и критических инцидентов.</div></div>
+    <div class="feat"><div class="feat-shine" style="background:radial-gradient(circle,rgba(59,127,255,.14),transparent)"></div><span class="feat-ico">💬</span><div class="feat-name">Попап уведомления</div><div class="feat-desc">Маленькое окно снизу-справа с прогресс-баром. Закрывается само по таймеру. Не мешает работе пользователя.</div></div>
+    <div class="feat"><div class="feat-shine" style="background:radial-gradient(circle,rgba(144,96,255,.14),transparent)"></div><span class="feat-ico">🤖</span><div class="feat-name">Ansible интеграция</div><div class="feat-desc">Endpoint <code>/api/ansible</code> с <code>X-API-Key</code>. Отправляй уведомления прямо из плейбуков без браузерной сессии.</div></div>
+    <div class="feat"><div class="feat-shine" style="background:radial-gradient(circle,rgba(0,229,160,.14),transparent)"></div><span class="feat-ico">⚡</span><div class="feat-name">Параллельная рассылка</div><div class="feat-desc">ThreadPoolExecutor с настраиваемыми потоками. 400 хостов за 15 секунд даже при 30% недоступных машин.</div></div>
+    <div class="feat"><div class="feat-shine" style="background:radial-gradient(circle,rgba(255,170,0,.14),transparent)"></div><span class="feat-ico">📝</span><div class="feat-name">Markdown в тексте</div><div class="feat-desc">Поддержка <code>## заголовков</code>, <code>**жирного**</code>, <code>> цитат</code> и <code>`кода`</code>. Красивые структурированные сообщения.</div></div>
+    <div class="feat"><div class="feat-shine" style="background:radial-gradient(circle,rgba(6,214,240,.14),transparent)"></div><span class="feat-ico">🖥</span><div class="feat-name">Веб-панель управления</div><div class="feat-desc">Хосты, шаблоны, история рассылок, Ansible-конструктор, настройки потоков и API-ключей в одном SPA.</div></div>
+  </div>
+</div>
+
+<!-- WINDOW TYPES -->
+<div class="wrap">
+  <div class="reveal">
+    <div class="s-label">Два типа окон</div>
+    <h2 class="s-title">Для каждой ситуации<br>свой формат</h2>
+  </div>
+  <div class="wd-grid reveal d1">
+    <div class="wd wd-full">
+      <div class="wd-head"><span>⚠ FULLSCREEN · CRITICAL</span><span>×</span></div>
+      <div class="wd-body">
+        <div class="wd-ico">🚨</div>
+        <div class="wd-title">Воздушная тревога</div>
+        <div class="wd-text">Немедленно покиньте рабочее место и следуйте в укрытие согласно инструкции по ГО.</div>
+        <div class="wd-btn">✓ Принял к сведению</div>
+      </div>
+    </div>
+    <div class="wd wd-pop">
+      <div class="wd-head"><span>💬 POPUP · WARNING</span><span>✕</span></div>
+      <div class="wd-body">
+        <div class="wd-ico">⚙️</div>
+        <div class="wd-title">Обновление ядра</div>
+        <div class="wd-text">Не выключайте компьютер. Идёт установка обновлений безопасности.</div>
+        <div class="wd-btn">Понятно</div>
+        <div class="wd-bar"><div class="wd-bar-i"></div></div>
+      </div>
+    </div>
+  </div>
+  <table class="lvl-table reveal d2">
+    <thead><tr><th>type</th><th>level</th><th>Результат</th><th>Как закрыть</th></tr></thead>
+    <tbody>
+      <tr><td><span class="lbadge lb-r">fullscreen</span></td><td>любой</td><td class="r-full">🖥 Весь экран</td><td>Только кнопка</td></tr>
+      <tr><td><span class="lbadge lb-b">popup</span></td><td>любой</td><td class="r-pop">💬 Снизу-справа</td><td>Таймер или крестик</td></tr>
+      <tr><td>не указан</td><td><span class="lbadge lb-r">critical</span> <span class="lbadge lb-a">warning</span></td><td class="r-full">🖥 Весь экран</td><td>Только кнопка</td></tr>
+      <tr><td>не указан</td><td><span class="lbadge lb-g">info</span></td><td class="r-pop">💬 Снизу-справа</td><td>Таймер или крестик</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ANSIBLE -->
+<div class="wrap" id="ansible">
+  <div class="reveal">
+    <div class="s-label">Ansible</div>
+    <h2 class="s-title">Встраивается в плейбуки<br>за 5 строк</h2>
+    <p class="s-sub">Пользователи видят что происходит и не выключают компьютеры в процессе обновления.</p>
+  </div>
+  <div class="ansible-layout">
+    <div class="a-steps reveal">
+      <div class="a-step"><div class="a-n">1</div><div class="a-text"><h4>Уведомить о начале</h4><p>Попап появляется на рабочем столе — «Не выключайте компьютер. Начинается обновление»</p></div></div>
+      <div class="a-step"><div class="a-n">2</div><div class="a-text"><h4>Выполнить задачу</h4><p>apt-get update, update-kernel, dist-upgrade или любая другая задача Ansible</p></div></div>
+      <div class="a-step"><div class="a-n">3</div><div class="a-text"><h4>Перезагрузка</h4><p>reboot — пользователь уже знает и готов. Никаких неожиданностей и потерь данных.</p></div></div>
+    </div>
+    <div class="codebox reveal d1">
+      <div class="cb-head"><div class="cbdots"><span class="cdr"></span><span class="cdy"></span><span class="cdg"></span></div><span class="cb-fn">update-kernel.yml</span></div>
+      <div class="cb-body">
+<pre><span class="op">---</span>
+<span class="ky">- name</span><span class="op">:</span> <span class="str">Обновление ядра</span>
+  <span class="ky">hosts</span><span class="op">:</span> <span class="str">workstations</span>
+  <span class="ky">become</span><span class="op">:</span> <span class="kw">yes</span>
+
+  <span class="ky">tasks</span><span class="op">:</span>
+
+    <span class="ky">- name</span><span class="op">:</span> <span class="str">Уведомить — начало</span>
+      <span class="ky">uri</span><span class="op">:</span>
+        <span class="ky">url</span><span class="op">:</span> <span class="str">"http://notify:8080/api/ansible"</span>
+        <span class="ky">method</span><span class="op">:</span> <span class="str">POST</span>
+        <span class="ky">headers</span><span class="op">:</span>
+          <span class="ky">X-API-Key</span><span class="op">:</span> <span class="str">"ansible-secret-key"</span>
+        <span class="ky">body_format</span><span class="op">:</span> <span class="str">json</span>
+        <span class="ky">body</span><span class="op">:</span>
+          <span class="ky">title</span><span class="op">:</span>   <span class="str">"⚠️ Обновление ядра"</span>
+          <span class="ky">level</span><span class="op">:</span>   <span class="str">"warning"</span>
+          <span class="ky">type</span><span class="op">:</span>    <span class="str">"popup"</span>
+          <span class="ky">timeout</span><span class="op">:</span> <span class="nm">15</span>
+          <span class="ky">hosts</span><span class="op">:</span>
+            <span class="op">-</span> <span class="str">"{{ inventory_hostname }}"</span>
+      <span class="ky">become</span><span class="op">:</span> <span class="kw">false</span>
+
+    <span class="ky">- name</span><span class="op">:</span> <span class="str">update-kernel</span>
+      <span class="ky">command</span><span class="op">:</span> <span class="str">update-kernel -y</span>
+
+    <span class="ky">- name</span><span class="op">:</span> <span class="str">Перезагрузка</span>
+      <span class="ky">reboot</span><span class="op">:</span>
+        <span class="ky">reboot_timeout</span><span class="op">:</span> <span class="nm">300</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLATFORMS -->
+<div class="wrap" id="platforms">
+  <div class="reveal">
+    <div class="s-label">Платформы</div>
+    <h2 class="s-title">Работает везде<br>где есть Linux ядро</h2>
+    <p class="s-sub">X11 и Wayland через XWayland. Нативный Wayland Layer Shell в планах.</p>
+    <div class="pl-wrap">
+      <div class="pl"><span class="pl-d"></span>ALT Linux p10 / p11</div>
+      <div class="pl"><span class="pl-d"></span>ALT Linux Сизиф</div>
+      <div class="pl"><span class="pl-d"></span>RedOS 8.0.2</div>
+      <div class="pl"><span class="pl-d"></span>AstraLinux 1.8</div>
+      <div class="pl"><span class="pl-d"></span>Ubuntu 22.04 / 24.04</div>
+      <div class="pl"><span class="pl-d"></span>Debian 12</div>
+      <div class="pl"><span class="pl-d"></span>MATE</div>
+      <div class="pl"><span class="pl-d"></span>GNOME</div>
+      <div class="pl"><span class="pl-d"></span>KDE Plasma</div>
+      <div class="pl"><span class="pl-d"></span>XFCE</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-bg"></div>
+  <h2 class="cta-h">Готов к работе<br><span class="cta-accent">прямо сейчас</span></h2>
+  <p class="cta-p">Бесплатно. Open source. Без регистрации и облаков.</p>
+  <div class="cta-btns">
+    <a href="https://github.com/PapaBorscht/Notify" class="cta1" target="_blank">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      Скачать на GitHub
+    </a>
+    <a href="https://t.me/PapaBorscht" class="cta2" target="_blank">✈️ Написать в Telegram</a>
+  </div>
+  <div class="cta-contacts">
+    <a href="https://github.com/PapaBorscht/Notify" class="cc" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      github.com/PapaBorscht/Notify
+    </a>
+    <a href="https://t.me/PapaBorscht" class="cc" target="_blank">✈️ @PapaBorscht</a>
+    <a href="mailto:me@ntfypush.ru" class="cc">✉️ me@ntfypush.ru</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="ft-l">© 2026 Notify · MIT License · Open Source</span>
+  <div class="ft-r">
+    <a href="https://github.com/PapaBorscht/Notify" target="_blank">GitHub</a>
+    <a href="https://t.me/PapaBorscht" target="_blank">Telegram</a>
+    <a href="mailto:me@ntfypush.ru">Email</a>
+  </div>
+</footer>
+
+<script>
+/* ─ PARTICLE CANVAS ─ */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Particle {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x = Math.random() * W;
+    this.y = init ? Math.random() * H : H + 10;
+    this.r = Math.random() * 1.5 + .3;
+    this.s = Math.random() * .4 + .1;
+    this.o = Math.random() * .5 + .1;
+    this.c = Math.random() > .7 ? '#3b7fff' : Math.random() > .5 ? '#818cf8' : '#22d3ee';
+  }
+  update() {
+    this.y -= this.s;
+    if (this.y < -10) this.reset(false);
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fillStyle = this.c;
+    ctx.globalAlpha = this.o;
+    ctx.fill();
+  }
+}
+
+for (let i = 0; i < 120; i++) particles.push(new Particle());
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => { p.update(); p.draw(); });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* ─ SCROLL REVEAL ─ */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
+}, { threshold: .1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+
+<!-- LIGHTBOX -->
+<div class="lb-overlay" id="lb">
+  <div class="lb-wrap">
+    <img class="lb-img" id="lb-img" src="" alt="">
+    <button class="lb-close" id="lb-close">✕</button>
+    <button class="lb-nav lb-prev" id="lb-prev">‹</button>
+    <button class="lb-nav lb-next" id="lb-next">›</button>
+    <div class="lb-counter" id="lb-counter"></div>
+  </div>
+  <div class="lb-caption" id="lb-caption"></div>
+</div>
+
+<!-- LIGHTBOX SCRIPT -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const items   = document.querySelectorAll('.gitem');
+  const lb      = document.getElementById('lb');
+  const lbImg   = document.getElementById('lb-img');
+  const lbCap   = document.getElementById('lb-caption');
+  const lbCnt   = document.getElementById('lb-counter');
+  const lbClose = document.getElementById('lb-close');
+  const lbPrev  = document.getElementById('lb-prev');
+  const lbNext  = document.getElementById('lb-next');
+  let cur = 0;
+
+  // Собрать данные из каждого gitem
+  const data = Array.from(items).map(item => ({
+    src:   item.querySelector('img').src,
+    title: item.querySelector('.gi-title') ? item.querySelector('.gi-title').textContent : ''
+  }));
+
+  function show(idx) {
+    cur = (idx + data.length) % data.length;
+    lbImg.style.opacity = '0';
+    setTimeout(function() {
+      lbImg.src = data[cur].src;
+      lbCap.textContent = data[cur].title;
+      lbCnt.textContent = (cur + 1) + ' / ' + data.length;
+      lbImg.style.opacity = '1';
+    }, cur === 0 ? 0 : 140);
+  }
+
+  function open(idx) {
+    show(idx);
+    lbImg.style.opacity = '1';
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Клик на каждый скриншот
+  items.forEach(function(item, i) {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      open(i);
+    });
+  });
+
+  lbClose.addEventListener('click', close);
+  lbPrev.addEventListener('click', function(e) { e.stopPropagation(); show(cur - 1); });
+  lbNext.addEventListener('click', function(e) { e.stopPropagation(); show(cur + 1); });
+
+  lb.addEventListener('click', function(e) {
+    if (e.target === lb) close();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape')     close();
+    if (e.key === 'ArrowRight') show(cur + 1);
+    if (e.key === 'ArrowLeft')  show(cur - 1);
+  });
+
+  lbImg.style.transition = 'opacity .14s ease';
+});
+</script>
+
+</body>
+</html>
