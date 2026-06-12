@@ -3,11 +3,12 @@
 > При воздушной тревоге, атаке на инфраструктуру или любом критическом событии — полноэкранное окно с захватом клавиатуры мгновенно появляется на всех экранах и не даёт его закрыть пока пользователь не подтвердит прочтение. Помимо тревог, отлично встраивается в Ansible-плейбуки: при установке ПО или обновлении ядра агент показывает попап снизу-справа с таймером.
 
 <img src="https://allwebs.ru/images/2026/06/05/c8aa7f6de20390f996e8832a536fdfdc.png" alt="Notify cross-platform" border="0">
-
-**Автор:** [@PapaBorscht](https://t.me/PapaBorscht)  
-**Почта:** [me@ntfypush.ru](mailto:me@ntfypush.ru)  
-**Сайт:** [Notify.github.io](https://papaborscht.github.io/Notify/) 
-**Демо:** [Demo.github.io](https://papaborscht.github.io/Notify/demo/)
+```markdown
+**Автор:** [@PapaBorscht](https://t.me/PapaBorscht)
+**Почта:** [me@ntfypush.ru](mailto:me@ntfypush.ru)
+**Сайт:** [papaborscht.github.io/Notify](https://papaborscht.github.io/Notify/)
+**Демо:** [papaborscht.github.io/Notify/demo](https://papaborscht.github.io/Notify/demo/)
+```
 
 **Платформа:** GNU/Linux · Python 3.8+  
 **Версия:** 3.0  
