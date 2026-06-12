@@ -7,7 +7,7 @@
 **Автор:** [@PapaBorscht](https://t.me/PapaBorscht)  
 **Почта:** [me@ntfypush.ru](mailto:me@ntfypush.ru)  
 **Сайт:** [Notify.github.io](https://papaborscht.github.io/Notify/) 
-**Демо:** [Demo.github.io](https://papaborscht.github.io/Notify/demo) 
+**Демо:** [Demo.github.io](https://papaborscht.github.io/Notify/demo/)
 
 **Платформа:** GNU/Linux · Python 3.8+  
 **Версия:** 3.0  
