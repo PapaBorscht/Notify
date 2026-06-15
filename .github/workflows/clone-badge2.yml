@@ -11,7 +11,7 @@ jobs:
       - name: Update clone count
         env:
           SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }}
-          GIST_ID: 631d76e4fe3264684269cbe20013c158
+          GIST_ID: 63fe6d7a80c8c8e6dc7d199c713af8ae
           USERNAME: PapaBorscht
           REPO: Notify
         run: |
