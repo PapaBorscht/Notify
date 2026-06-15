@@ -1,0 +1,16 @@
+name: Clone Badge
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: MShawon/github-clone-count-badge@latest
+        with:
+          username: PapaBorscht
+          repo: Notify
+          token: ${{ secrets.SECRET_TOKEN }}
+          gist_id: 631d76e4fe3264684269cbe20013c158
