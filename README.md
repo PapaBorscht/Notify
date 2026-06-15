@@ -288,6 +288,65 @@ curl -X POST http://notify-server:8080/api/ansible \
 
 ---
 
+
+## 🤖 Bash интеграция, на примере обновления пакетов в RedOS
+
+<img src="https://allwebs.ru/images/2026/06/15/811f3c25ac274606cd33d0e9bacee493.png" alt="1" border="0">
+<img src="https://allwebs.ru/images/2026/06/15/9a70f327bfefdde1e6d675a519783048.png" alt="2" border="0">
+<img src="https://allwebs.ru/images/2026/06/15/e7cf48f6292d211d6f960771c461b56f.png" alt="3" border="0">
+
+### Пример скрипта с обратным отсчётом
+
+```bash
+#!/bin/bash
+# ================================================================
+# notify-shutdown.sh
+# Обновляет пакеты, показывает обратный отсчёт и выключает АРМ
+# ================================================================
+DELAY=60        # Общее время до выключения (секунд)
+STEP=10         # Интервал обновления попапа
+TOKEN="supersecrettoken123"
+AGENT="http://127.0.0.1:9988"
+
+notify() {
+    local title="$1" msg="$2" level="$3" timeout="$4"
+    curl -s -X POST "$AGENT" \
+      -H "X-Token: $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"title\":\"$title\",\"message\":\"$msg\",\"level\":\"$level\",\"type\":\"popup\",\"timeout\":$timeout}" \
+      > /dev/null
+}
+
+# ── 1. Обновить пакеты ──────────────────────────────────────────
+notify "🔄 Обновление пакетов" "## Идёт обновление системы\n\nНе выключайте компьютер..." "info" $DELAY
+dnf update-minimal -y
+
+# ── 2. Обратный отсчёт ─────────────────────────────────────────
+remaining=$DELAY
+while [ $remaining -gt 0 ]; do
+    if   [ $remaining -gt 30 ]; then level="warning"
+    elif [ $remaining -gt 10 ]; then level="warning"
+    else                              level="critical"
+    fi
+    notify \
+        "⚠️ Выключение через $remaining сек" \
+        "## Сохраните работу!\n\nКомпьютер выключится через **$remaining секунд**." \
+        "$level" \
+        $STEP
+    sleep $STEP
+    remaining=$((remaining - STEP))
+done
+
+# ── 3. Финальное сообщение ──────────────────────────────────────
+notify "🔴 Выключение..." "## Компьютер выключается!\n\nДо свидания." "critical" 3
+sleep 3
+
+# ── 4. Выключить АРМ ───────────────────────────────────────────
+/sbin/shutdown -h now
+```
+
+
+
 ## 📁 Структура проекта
 
 ```
