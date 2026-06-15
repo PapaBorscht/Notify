@@ -1,6 +1,6 @@
 # 📢 Notify — Система экстренного оповещения
 
-> При воздушной тревоге, атаке на инфраструктуру или любом критическом событии — полноэкранное окно с захватом клавиатуры мгновенно появляется на всех экранах и не даёт его закрыть пока пользователь не подтвердит прочтение. Помимо тревог, отлично встраивается в Ansible-плейбуки: при установке ПО или обновлении ядра агент показывает попап снизу-справа с таймером.
+> При воздушной тревоге, атаке на инфраструктуру или любом критическом событии — полноэкранное окно с захватом клавиатуры мгновенно появляется на всех экранах и не даёт его закрыть пока пользователь не подтвердит прочтение. Помимо тревог, отлично встраивается в Ansible-плейбуки, Bash скрипты, Puppet манифесты: при установке ПО или обновлении ядра агент показывает попап снизу-справа с таймером.
 
 <img src="https://allwebs.ru/images/2026/06/05/c8aa7f6de20390f996e8832a536fdfdc.png" alt="Notify cross-platform" border="0">
 
@@ -345,7 +345,119 @@ sleep 3
 /sbin/shutdown -h now
 ```
 
+## 🎭 Puppet интеграция
 
+Puppet автоматически раскладывает агент и скрипты на все машины.
+
+### Структура модуля
+
+```
+/etc/puppet/modules/notify/
+├── manifests/
+│   ├── init.pp          ← установка агента
+│   └── shutdown.pp      ← скрипт выключения + cron
+└── files/
+    ├── agent.py
+    ├── agent-start.sh
+    └── notify-shutdown.sh
+```
+
+### Установка агента — `manifests/init.pp`
+
+```puppet
+class notify::agent {
+
+  # Файлы агента
+  file { '/opt/notify-agent':
+    ensure => directory,
+    mode   => '0755',
+  }
+
+  file { '/opt/notify-agent/agent.py':
+    ensure => present,
+    source => 'puppet:///modules/notify/agent.py',
+    mode   => '0644',
+    notify => Exec['restart-notify-agent'],
+  }
+
+  file { '/opt/notify-agent/agent-start.sh':
+    ensure => present,
+    source => 'puppet:///modules/notify/agent-start.sh',
+    mode   => '0755',
+  }
+
+  # XDG автозапуск
+  file { '/etc/xdg/autostart/notify-agent.desktop':
+    ensure => present,
+    source => 'puppet:///modules/notify/notify-agent.desktop',
+    mode   => '0644',
+  }
+
+  # Переменные Qt для трея
+  file { '/etc/profile.d/notify-agent.sh':
+    ensure  => present,
+    content => "export QT_QPA_PLATFORMTHEME=\"\"\nexport QT_STYLE_OVERRIDE=\"\"\n",
+    mode    => '0644',
+  }
+
+  # Перезапустить агента если файлы изменились
+  exec { 'restart-notify-agent':
+    command     => '/bin/bash -c "pkill -f agent.py; sleep 1"',
+    refreshonly => true,
+  }
+
+}
+```
+
+### Скрипт выключения — `manifests/shutdown.pp`
+
+```puppet
+class notify::shutdown {
+
+  # Скрипт из files/
+  file { '/usr/local/bin/notify-shutdown.sh':
+    ensure => present,
+    source => 'puppet:///modules/notify/notify-shutdown.sh',
+    mode   => '0755',
+  }
+
+  # Cron — каждый день в 22:00
+  cron { 'notify-shutdown':
+    ensure  => present,
+    command => '/usr/local/bin/notify-shutdown.sh',
+    user    => 'root',
+    hour    => '22',
+    minute  => '0',
+    require => File['/usr/local/bin/notify-shutdown.sh'],
+  }
+
+}
+```
+
+### Применить на машины — `site.pp`
+
+```puppet
+# Агент на все рабочие станции
+node /^workstation/ {
+  include notify::agent
+  include notify::shutdown
+}
+
+# Или на конкретные хосты
+node 'pc01.company.ru' {
+  include notify::agent
+}
+```
+
+### Применить вручную
+
+```bash
+# На всех агентах (запускается автоматически каждые 30 мин)
+puppet agent -t
+
+# Проверить без применения
+puppet agent -t --noop
+```
 
 ## 📁 Структура проекта
 
