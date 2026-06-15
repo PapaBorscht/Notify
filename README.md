@@ -566,7 +566,7 @@ OK
 | Python | 3.8+ |
 | PyQt5 | `apt-get install python3-module-pyqt5` |
 | DE | MATE, KDE, XFCE, GNOME (X11 / XWayland) |
-| Сеть | TCP порт 9988 (агент), 8080 (панель) |
+| Сеть | TCP порт 9988 (агент), 8080 (панель) можно поменять на свои |
 
 ---
 
