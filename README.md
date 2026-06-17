@@ -37,8 +37,7 @@ cd /tmp/Notify-main/
 bash install-agent.sh
 ```
 **Установка агента на Win:**
-
-
+```
 <img src="https://allwebs.ru/images/2026/06/17/771f1c17d6698ee85507393bdcef159a.png" alt="win client" border="0">
 Скоро будет...
 ```
