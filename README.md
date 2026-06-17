@@ -36,6 +36,12 @@ unzip main.zip
 cd /tmp/Notify-main/
 bash install-agent.sh
 ```
+**Установка агента на Win:**
+
+```bash
+Скоро будет...
+```
+
 
 **Доступ к панели управления:**
 
