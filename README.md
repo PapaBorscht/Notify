@@ -39,7 +39,7 @@ bash install-agent.sh
 **Установка агента на Win:**
 
 ```bash
-<img src="https://allwebs.ru/images/2026/06/17/2f3282f867c72b2b8e89967b7ed1d8bf.png" alt="Win client" border="0">
+<img src="https://allwebs.ru/images/2026/06/17/771f1c17d6698ee85507393bdcef159a.png" alt="win client" border="0">
 Скоро будет...
 ```
 
