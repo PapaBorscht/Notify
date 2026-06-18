@@ -36,11 +36,9 @@ unzip main.zip
 cd /tmp/Notify-main/
 bash install-agent.sh
 ```
-**Установка агента на Win:**
+## 🪟 Windows Agent
 
 <img src="https://allwebs.ru/images/2026/06/17/771f1c17d6698ee85507393bdcef159a.png" alt="win client" border="0">
-
-## 🪟 Windows Agent
 
 Агент уведомлений для рабочих станций Windows 10/11. Логика работы, формат запросов и типы окон полностью идентичны Linux-версии.
 
@@ -84,7 +82,7 @@ netstat -an | findstr 9988
 
 <br>
 
-**Доступ к панели управления:**
+🚀##**Доступ к панели управления:**
 
 - **Адрес:** `http://localhost:8080`
 - **Логин:** `admin`
