@@ -596,7 +596,7 @@ OK
 | AstraLinux 1.8 | Fly | ✅ | — |
 | Ubuntu 22.04 / 24.04 | GNOME | ✅ | ✅ XWayland |
 | Debian 12 | XFCE / GNOME | ✅ | ✅ XWayland |
-| Win 10 \11 | | ✅ | ✅  |
+| Win 10 \11 | |  |   |
 
 > Wayland поддерживается через XWayland. Нативный Wayland (Layer Shell) в планах.
 
