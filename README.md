@@ -606,7 +606,7 @@ OK
 
 | Компонент | Требование |
 |---|---|
-| ОС | ALT Linux (Сизиф, p10, p11), RedOS 8.0.2, AstraLinux 1.8, |
+| ОС | ALT Linux (Сизиф, p10, p11), RedOS 8.0.2, AstraLinux 1.8, Win 10-11 x64 |
 | Python | 3.8+ |
 | PyQt5 | `apt-get install python3-module-pyqt5` |
 | DE | MATE, KDE, XFCE, GNOME (X11 / XWayland) |
