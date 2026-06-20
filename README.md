@@ -567,6 +567,29 @@ python3 test_notify.py
 
 ---
 
+## 🔐 Смена пароля от панели управления
+
+Пароль хранится как SHA-256 SALT/HASH, не открытым текстом.
+
+Сгенерировать новую пару SALT/HASH:
+
+```bash
+python3 -c "
+import hashlib, secrets
+salt = secrets.token_hex(16)
+password = 'твой_новый_пароль'
+print('SALT:', salt)
+print('HASH:', hashlib.sha256((salt + password).encode()).hexdigest())
+"
+```
+
+Вставить результат в `server.py`:
+
+```python
+ADMIN_SALT = "вывод_SALT"
+ADMIN_HASH = "вывод_HASH"
+```
+
 ## 🧪 Автотесты
 
 ```
