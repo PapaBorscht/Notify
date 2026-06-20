@@ -583,7 +583,7 @@ print('HASH:', hashlib.sha256((salt + password).encode()).hexdigest())
 "
 ```
 
-Вставить результат в `server.py`:
+Вставить результат в `/opt/notify-panel/server.py`:
 
 ```python
 ADMIN_SALT = "вывод_SALT"
