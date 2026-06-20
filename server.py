@@ -16,14 +16,47 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+import hashlib
+import hmac
 
 # ─────────────── Настройки ───────────────
 PANEL_HOST     = "0.0.0.0"
 PANEL_PORT     = 8080
 ADMIN_LOGIN    = "admin"
-ADMIN_PASSWORD = "admin123"             # ← поменяй
+
+# Пароль хранится как SHA-256 хеш с солью, не открытым текстом.
+# Сгенерировать новую пару SALT/HASH для своего пароля:
+#   python3 -c "import hashlib,secrets; s=secrets.token_hex(16); print('SALT:',s); print('HASH:',hashlib.sha256((s+'твой_пароль').encode()).hexdigest())"
+ADMIN_SALT = "d931876487df492ec937e5e5e4f54b2c"
+ADMIN_HASH = "26ba09f867511d9404f7ee854eae52b95ede386803185714f7dddc0f5af934ef"  # хеш пароля "admin123" — ПОМЕНЯЙ
+
 AGENT_TOKEN    = "supersecrettoken123"  # должен совпадать с agent.py
 SESSION_TTL    = 3600
+
+# Защита от подбора пароля (brute-force)
+LOGIN_MAX_ATTEMPTS = 5      # допустимое число неверных попыток
+LOGIN_LOCKOUT_SEC  = 300    # блокировка IP на N секунд после превышения
+_login_attempts: dict = {}  # {ip: [timestamp, ...]}
+
+
+def verify_password(login: str, password: str) -> bool:
+    """Проверка пароля через хеш с защитой от timing-атак."""
+    if login != ADMIN_LOGIN:
+        return False
+    calc = hashlib.sha256((ADMIN_SALT + password).encode()).hexdigest()
+    return hmac.compare_digest(calc, ADMIN_HASH)
+
+
+def login_allowed(ip: str) -> bool:
+    """True если IP не превысил лимит неудачных попыток входа."""
+    now = datetime.now().timestamp()
+    attempts = [t for t in _login_attempts.get(ip, []) if now - t < LOGIN_LOCKOUT_SEC]
+    _login_attempts[ip] = attempts
+    return len(attempts) < LOGIN_MAX_ATTEMPTS
+
+
+def login_record_fail(ip: str):
+    _login_attempts.setdefault(ip, []).append(datetime.now().timestamp())
 
 # ─────────────── Настройки рассылки ───────────────
 # Меняй значения здесь для постоянного эффекта.
@@ -373,12 +406,24 @@ class Handler(BaseHTTPRequestHandler):
         data = self.read_body()
 
         if p == "/login":
-            if (data.get("login","").strip()    == ADMIN_LOGIN and
-                data.get("password","").strip() == ADMIN_PASSWORD):
+            client_ip = self.client_address[0]
+
+            if not login_allowed(client_ip):
+                self.send_html(login_page(
+                    f"Слишком много неудачных попыток. "
+                    f"Попробуйте через {LOGIN_LOCKOUT_SEC // 60} минут."
+                ))
+                return
+
+            login_val = data.get("login", "").strip()
+            pass_val  = data.get("password", "").strip()
+
+            if verify_password(login_val, pass_val):
                 tok = session_create()
                 self.redirect("/", {"Set-Cookie":
                     f"session={tok}; HttpOnly; Path=/; Max-Age={SESSION_TTL}"})
             else:
+                login_record_fail(client_ip)
                 self.send_html(login_page("Неверный логин или пароль"))
             return
 
@@ -492,7 +537,7 @@ if __name__ == "__main__":
     print("║       Notify Admin Panel             ║")
     print(f"║   http://localhost:{PANEL_PORT}              ║")
     print(f"║   Логин:  {ADMIN_LOGIN:<10}               ║")
-    print(f"║   Пароль: {ADMIN_PASSWORD:<10}               ║")
+    print(f"║   Пароль: задан через ADMIN_HASH в коде         ║")
     print("║   Ctrl+C — остановить                ║")
     print("╚══════════════════════════════════════╝")
     srv = HTTPServer((PANEL_HOST, PANEL_PORT), Handler)
